@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AMD Agentic Hardware Co-Design Platform</title>
+    <link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo-section">
+                <h1>🔧 AMD Agentic Hardware Co-Design Platform</h1>
+                <p class="subtitle">AI-Powered FPGA Design Generation | AMD Sling Shot Hackathon 2026</p>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Input Section -->
+            <section class="input-section">
+                <h2>🎯 Describe Your Hardware Project</h2>
+                
+                <div class="form-group">
+                    <label for="userPrompt">What do you want to build?</label>
+                    <textarea 
+                        id="userPrompt" 
+                        class="input-field textarea-field" 
+                        rows="8" 
+                        placeholder="Example: Design a 32-bit ALU with addition, subtraction, AND, OR, XOR operations and zero flag detection for an Artix-7 FPGA..."
+                    ></textarea>
+                </div>
+
+                <button id="generateBtn" class="generate-btn">
+                    <span class="btn-text">🚀 Generate Hardware Design</span>
+                    <span class="loading-spinner" style="display: none;">⏳ Processing...</span>
+                </button>
+            </section>
+
+            <!-- Status Section -->
+            <section class="status-section" id="statusSection" style="display: none;">
+                <h3>📊 Pipeline Status</h3>
+                <div class="agent-status">
+                    <div class="agent-item" id="agent1">
+                        <span class="agent-icon">🕵️‍♂️</span>
+                        <span class="agent-name">System Architect</span>
+                        <span class="agent-state pending">⏳ Waiting</span>
+                    </div>
+                    <div class="agent-item" id="agent2">
+                        <span class="agent-icon">👨‍💻</span>
+                        <span class="agent-name">RTL Engineer</span>
+                        <span class="agent-state pending">⏳ Waiting</span>
+                    </div>
+                    <div class="agent-item" id="agent3">
+                        <span class="agent-icon">🧐</span>
+                        <span class="agent-name">Vivado Integrator</span>
+                        <span class="agent-state pending">⏳ Waiting</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Results Section -->
+            <section class="results-section" id="resultsSection" style="display: none;">
+                <div class="results-header">
+                    <h2>✨ Generated Design</h2>
+                    <button id="downloadZipBtn" class="download-zip-btn">📦 Download Complete Project (.zip)</button>
+                </div>
+
+                <!-- Block Diagram Card -->
+                <div class="result-card">
+                    <div class="card-header">
+                        <h3>🎨 System Block Diagram</h3>
+                    </div>
+                    <div class="card-content">
+                        <canvas id="blockDiagram" width="1200" height="400"></canvas>
+                    </div>
+                </div>
+
+                <!-- Architecture Tab -->
+                <div class="result-card">
+                    <div class="card-header">
+                        <h3>🏗️ Architecture Design</h3>
+                        <button class="copy-btn" data-target="architectureContent">📋 Copy</button>
+                    </div>
+                    <div class="card-content">
+                        <div id="projectTitle" class="project-title"></div>
+                        <div id="architectureDescription" class="architecture-desc"></div>
+                        <div id="moduleList" class="module-list"></div>
+                    </div>
+                </div>
+
+                <!-- Verilog Code Tab -->
+                <div class="result-card">
+                    <div class="card-header">
+                        <h3>💻 Verilog RTL Code</h3>
+                        <button class="copy-btn" data-target="verilogCode">📋 Copy</button>
+                    </div>
+                    <div class="card-content">
+                        <pre id="verilogCode" class="code-block"></pre>
+                    </div>
+                </div>
+
+                <!-- Testbench Tab -->
+                <div class="result-card">
+                    <div class="card-header">
+                        <h3>🧪 Testbench Code</h3>
+                        <button class="copy-btn" data-target="testbenchCode">📋 Copy</button>
+                    </div>
+                    <div class="card-content">
+                        <pre id="testbenchCode" class="code-block"></pre>
+                    </div>
+                </div>
+
+                <!-- Vivado TCL Tab -->
+                <div class="result-card">
+                    <div class="card-header">
+                        <h3>⚙️ Vivado TCL Script</h3>
+                        <button class="copy-btn" data-target="vivadoTclScript">📋 Copy</button>
+                    </div>
+                    <div class="card-content">
+                        <pre id="vivadoTclScript" class="code-block"></pre>
+                        <div id="resourceEstimation" class="resource-estimation"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Error Section -->
+            <section class="error-section" id="errorSection" style="display: none;">
+                <h3>❌ Error</h3>
+                <p id="errorMessage"></p>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Built for AMD Sling Shot Hackathon 2026 | Powered by Google Gemini AI | Target: Basys 3 (Artix-7 FPGA)</p>
+        </footer>
+    </div>
+
+    <script src="static/main.js"></script>
+</body>
+</html>
