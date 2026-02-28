@@ -10,7 +10,7 @@ This platform uses a sequential three-agent pipeline powered by Google Gemini AI
 2. **RTL Engineer** - Generates synthesizable Verilog code and testbenches
 3. **Vivado Integrator** - Creates Vivado TCL scripts and resource estimations
 
-## 🚀 Setup
+## 🚀 Local Setup
 
 1. **Install Dependencies**
    ```bash
@@ -18,9 +18,12 @@ This platform uses a sequential three-agent pipeline powered by Google Gemini AI
    ```
 
 2. **Configure API Key**
-   - Open `.env` file
-   - Replace `your_gemini_api_key_here` with your actual Gemini API key
-   - Get your key from: https://makersuite.google.com/app/apikey
+   - Create a `.env` file in the project root
+   - Add your Gemini API key:
+     ```
+     GEMINI_API_KEY=your_actual_api_key_here
+     ```
+   - Get your key from: https://aistudio.google.com/app/apikey
 
 3. **Run the Server**
    ```bash
@@ -32,7 +35,35 @@ This platform uses a sequential three-agent pipeline powered by Google Gemini AI
 
 4. **Open the Interface**
    - Navigate to `http://localhost:5000` in your browser
-   - Or open `index.html` directly
+
+## 🌐 Deploy to Render (Free)
+
+1. **Push to GitHub**
+   ```bash
+   git add .
+   git commit -m "Ready for deployment"
+   git push
+   ```
+
+2. **Create Render Account**
+   - Go to https://render.com
+   - Sign up with GitHub
+
+3. **Create New Web Service**
+   - Click "New +" → "Web Service"
+   - Connect your GitHub repository
+   - Render will auto-detect the `render.yaml` configuration
+
+4. **Add Environment Variable**
+   - In Render dashboard, go to "Environment"
+   - Add variable:
+     - **Key**: `GEMINI_API_KEY`
+     - **Value**: Your Gemini API key
+   - Click "Save Changes"
+
+5. **Deploy**
+   - Render will automatically deploy your app
+   - Your app will be live at: `https://your-app-name.onrender.com`
 
 ## 📡 API Endpoint
 
@@ -41,8 +72,7 @@ This platform uses a sequential three-agent pipeline powered by Google Gemini AI
 Request body:
 ```json
 {
-  "userPrompt": "Design a 32-bit ALU with basic arithmetic operations",
-  "domain": "Digital Design"
+  "userPrompt": "Design a 32-bit ALU with basic arithmetic operations"
 }
 ```
 
@@ -53,3 +83,12 @@ Response includes architecture design, Verilog code, testbench, and Vivado TCL s
 Built for the AMD Sling Shot Hackathon 2026 - Demonstrating agentic AI workflows for hardware design automation.
 
 Target Platform: Basys 3 (Artix-7 FPGA - xc7a35tcpg236-1)
+
+## 🔧 Tech Stack
+
+- **Backend**: Flask (Python)
+- **AI**: Google Gemini 2.0 Flash
+- **Frontend**: Vanilla JavaScript, HTML5, CSS3
+- **Database**: Firebase Firestore
+- **Auth**: Firebase Authentication (Google Sign-In)
+- **Deployment**: Render (Free tier)

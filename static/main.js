@@ -88,6 +88,9 @@ async function handleGenerate() {
 
         // Display Results
         displayResults(data);
+        
+        // Save to Firebase
+        saveProjectToFirebase(data);
 
         // Mark all agents as complete
         updateAgentStatus(agent1Element, 'done', '✅ Complete');
@@ -283,6 +286,296 @@ function sleep(ms) {
 console.log('AMD Agentic Hardware Co-Design Platform - Frontend Loaded');
 console.log('API Endpoint:', API_BASE_URL);
 
+// Current authenticated user
+let currentUser = null;
+
+// Load project history when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    initAuth();
+});
+
+// ========================================
+// FIREBASE AUTHENTICATION
+// ========================================
+
+function initAuth() {
+    if (typeof firebase === 'undefined' || !auth) {
+        console.log('Firebase Auth not available');
+        return;
+    }
+    
+    // Listen for auth state changes
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            // User is signed in
+            currentUser = user;
+            console.log('✅ User signed in:', user.email);
+            updateUIForSignedInUser(user);
+            loadProjectHistory();
+        } else {
+            // User is signed out
+            currentUser = null;
+            console.log('❌ User signed out');
+            updateUIForSignedOutUser();
+        }
+    });
+}
+
+function signInWithGoogle() {
+    if (typeof firebase === 'undefined' || !auth) {
+        alert('Firebase Auth not available');
+        return;
+    }
+    
+    const provider = new firebase.auth.GoogleAuthProvider();
+    
+    auth.signInWithPopup(provider)
+        .then((result) => {
+            console.log('✅ Signed in successfully:', result.user.email);
+        })
+        .catch((error) => {
+            console.error('❌ Sign-in error:', error);
+            alert('Failed to sign in: ' + error.message);
+        });
+}
+
+function signOut() {
+    if (typeof firebase === 'undefined' || !auth) {
+        alert('Firebase Auth not available');
+        return;
+    }
+    
+    auth.signOut()
+        .then(() => {
+            console.log('✅ Signed out successfully');
+        })
+        .catch((error) => {
+            console.error('❌ Sign-out error:', error);
+            alert('Failed to sign out: ' + error.message);
+        });
+}
+
+function updateUIForSignedInUser(user) {
+    document.getElementById('signedOut').style.display = 'none';
+    document.getElementById('signedIn').style.display = 'flex';
+    document.getElementById('userAvatar').src = user.photoURL || 'https://via.placeholder.com/40';
+    document.getElementById('userName').textContent = user.displayName || 'User';
+    document.getElementById('userEmail').textContent = user.email;
+}
+
+function updateUIForSignedOutUser() {
+    document.getElementById('signedOut').style.display = 'block';
+    document.getElementById('signedIn').style.display = 'none';
+    
+    // Clear history
+    const historyContainer = document.getElementById('projectHistory');
+    historyContainer.innerHTML = '<p class="no-history">Please sign in to view your projects</p>';
+}
+
+// ========================================
+// FIREBASE PROJECT HISTORY (User-Specific)
+// ========================================
+
+function toggleSidebar() {
+    const sidebar = document.getElementById('historySidebar');
+    sidebar.classList.toggle('open');
+}
+
+function saveProjectToFirebase(projectData) {
+    if (typeof firebase === 'undefined' || !db) {
+        console.log('Firebase not available, skipping save');
+        return;
+    }
+    
+    if (!currentUser) {
+        console.log('User not signed in, skipping save');
+        alert('Please sign in to save your projects!');
+        return;
+    }
+    
+    const projectDoc = {
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        prompt: document.getElementById('userPrompt').value,
+        title: projectData.architecture.projectTitle,
+        data: projectData,
+        createdAt: new Date().toISOString(),
+        userId: currentUser.uid,
+        userEmail: currentUser.email,
+        userName: currentUser.displayName
+    };
+    
+    db.collection('users').doc(currentUser.uid).collection('projects')
+        .add(projectDoc)
+        .then((docRef) => {
+            console.log('✅ Project saved to Firebase with ID:', docRef.id);
+            loadProjectHistory();
+        })
+        .catch((error) => {
+            console.error('❌ Error saving to Firebase:', error);
+        });
+}
+
+function loadProjectHistory() {
+    if (typeof firebase === 'undefined' || !db) {
+        console.log('Firebase not available');
+        return;
+    }
+    
+    if (!currentUser) {
+        console.log('User not signed in');
+        return;
+    }
+    
+    const historyContainer = document.getElementById('projectHistory');
+    
+    db.collection('users').doc(currentUser.uid).collection('projects')
+        .orderBy('createdAt', 'desc')
+        .limit(20)
+        .get()
+        .then((snapshot) => {
+            if (snapshot.empty) {
+                historyContainer.innerHTML = '<p class="no-history">No projects yet. Start by generating a design!</p>';
+                return;
+            }
+            
+            historyContainer.innerHTML = '';
+            
+            snapshot.forEach((doc) => {
+                const project = doc.data();
+                const historyItem = createHistoryItem(doc.id, project);
+                historyContainer.appendChild(historyItem);
+            });
+        })
+        .catch((error) => {
+            console.error('Error loading history:', error);
+            historyContainer.innerHTML = '<p class="no-history">Error loading projects</p>';
+        });
+}
+
+function createHistoryItem(projectId, project) {
+    const div = document.createElement('div');
+    div.className = 'history-item';
+    
+    const timeAgo = getTimeAgo(project.createdAt);
+    
+    div.innerHTML = `
+        <div class="history-item-title">${project.title || 'Untitled Project'}</div>
+        <div class="history-item-prompt">${project.prompt || 'No description'}</div>
+        <div class="history-item-time">🕐 ${timeAgo}</div>
+        <div class="history-item-actions">
+            <button class="load-btn" onclick="loadProjectById('${projectId}')">📂 Load</button>
+            <button class="delete-btn" onclick="deleteProject('${projectId}')">🗑️ Delete</button>
+        </div>
+    `;
+    
+    return div;
+}
+
+function loadProjectById(projectId) {
+    if (typeof firebase === 'undefined' || !db) {
+        alert('Firebase not available');
+        return;
+    }
+    
+    if (!currentUser) {
+        alert('Please sign in to load projects');
+        return;
+    }
+    
+    db.collection('users').doc(currentUser.uid).collection('projects').doc(projectId).get()
+        .then((doc) => {
+            if (doc.exists) {
+                const project = doc.data();
+                currentProjectData = project.data;
+                displayResults(project.data);
+                toggleSidebar();
+                
+                // Scroll to results
+                document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+            } else {
+                alert('Project not found');
+            }
+        })
+        .catch((error) => {
+            console.error('Error loading project:', error);
+            alert('Failed to load project');
+        });
+}
+
+function deleteProject(projectId) {
+    if (!confirm('Are you sure you want to delete this project?')) {
+        return;
+    }
+    
+    if (typeof firebase === 'undefined' || !db) {
+        alert('Firebase not available');
+        return;
+    }
+    
+    if (!currentUser) {
+        alert('Please sign in to delete projects');
+        return;
+    }
+    
+    db.collection('users').doc(currentUser.uid).collection('projects').doc(projectId).delete()
+        .then(() => {
+            console.log('Project deleted');
+            loadProjectHistory();
+        })
+        .catch((error) => {
+            console.error('Error deleting project:', error);
+            alert('Failed to delete project');
+        });
+}
+
+function clearHistory() {
+    if (!confirm('Are you sure you want to delete ALL projects? This cannot be undone!')) {
+        return;
+    }
+    
+    if (typeof firebase === 'undefined' || !db) {
+        alert('Firebase not available');
+        return;
+    }
+    
+    if (!currentUser) {
+        alert('Please sign in');
+        return;
+    }
+    
+    db.collection('users').doc(currentUser.uid).collection('projects').get()
+        .then((snapshot) => {
+            const batch = db.batch();
+            snapshot.docs.forEach((doc) => {
+                batch.delete(doc.ref);
+            });
+            return batch.commit();
+        })
+        .then(() => {
+            console.log('All projects deleted');
+            loadProjectHistory();
+        })
+        .catch((error) => {
+            console.error('Error clearing history:', error);
+            alert('Failed to clear history');
+        });
+}
+
+function getTimeAgo(dateString) {
+    if (!dateString) return 'Unknown';
+    
+    const date = new Date(dateString);
+    const now = new Date();
+    const seconds = Math.floor((now - date) / 1000);
+    
+    if (seconds < 60) return 'Just now';
+    if (seconds < 3600) return `${Math.floor(seconds / 60)} minutes ago`;
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours ago`;
+    if (seconds < 604800) return `${Math.floor(seconds / 86400)} days ago`;
+    
+    return date.toLocaleDateString();
+}
+
 // ========================================
 // BLOCK DIAGRAM GENERATOR
 // ========================================
@@ -296,6 +589,15 @@ function drawBlockDiagram(moduleList, projectTitle) {
     // Set background
     ctx.fillStyle = '#1a1a1a';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Add watermark at top-right
+    ctx.fillStyle = 'rgba(237, 28, 36, 0.2)';
+    ctx.font = 'bold 14px Arial';
+    ctx.textAlign = 'right';
+    ctx.fillText('AMD Sling Shot Hackathon 2026', canvas.width - 20, 25);
+    ctx.font = '12px Arial';
+    ctx.fillText('Bhavin / Nishant', canvas.width - 20, 45);
+    ctx.textAlign = 'left';
     
     // Draw title
     ctx.fillStyle = '#ED1C24';

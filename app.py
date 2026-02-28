@@ -2,7 +2,8 @@ import os
 import json
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from dotenv import load_dotenv
 from io import BytesIO
 import zipfile
@@ -16,9 +17,11 @@ CORS(app)
 # Configure Gemini API
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 if not GEMINI_API_KEY:
+    print("WARNING: GEMINI_API_KEY not found in environment variables")
+    print("Please set GEMINI_API_KEY in Render dashboard under Environment Variables")
     raise ValueError("GEMINI_API_KEY not found in environment variables")
 
-genai.configure(api_key=GEMINI_API_KEY)
+client = genai.Client(api_key=GEMINI_API_KEY)
 
 # Agent 1: System Architect Prompt Template
 ARCHITECT_PROMPT = """You are a Senior Silicon Architect at AMD. Your job is to design the high-level architecture for a user's hardware project idea.
@@ -61,8 +64,10 @@ resourceEstimation: A string predicting the approximate hardware cost (e.g., 'Es
 def call_gemini_agent(prompt, agent_name="Agent"):
     """Call Gemini API with error handling"""
     try:
-        model = genai.GenerativeModel('gemini-flash-latest')
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(
+            model='gemini-2.0-flash-exp',
+            contents=prompt
+        )
         
         if not response or not response.text:
             raise ValueError(f"{agent_name} returned empty response")

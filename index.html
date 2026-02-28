@@ -8,6 +8,42 @@
 </head>
 <body>
     <div class="container">
+        <!-- History Sidebar -->
+        <aside class="history-sidebar" id="historySidebar">
+            <div class="sidebar-header">
+                <h3>📚 Project History</h3>
+                <button class="close-sidebar" onclick="toggleSidebar()">✕</button>
+            </div>
+            <div class="sidebar-actions">
+                <button class="sidebar-btn" onclick="clearHistory()">🗑️ Clear All</button>
+            </div>
+            <div id="projectHistory" class="history-list">
+                <p class="no-history">No projects yet. Start by generating a design!</p>
+            </div>
+        </aside>
+        
+        <button class="history-toggle" onclick="toggleSidebar()">
+            📚 History
+        </button>
+
+        <!-- User Profile Section -->
+        <div class="user-profile" id="userProfile">
+            <div class="user-signed-out" id="signedOut">
+                <button class="sign-in-btn" onclick="signInWithGoogle()">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width="18">
+                    Sign in with Google
+                </button>
+            </div>
+            <div class="user-signed-in" id="signedIn" style="display: none;">
+                <img id="userAvatar" class="user-avatar" src="" alt="User">
+                <div class="user-info">
+                    <div id="userName" class="user-name"></div>
+                    <div id="userEmail" class="user-email"></div>
+                </div>
+                <button class="sign-out-btn" onclick="signOut()">Sign Out</button>
+            </div>
+        </div>
+
         <!-- Header -->
         <header class="header">
             <div class="logo-section">
@@ -134,9 +170,34 @@
 
         <!-- Footer -->
         <footer class="footer">
-            <p>Built for AMD Sling Shot Hackathon 2026 | Powered by Google Gemini AI | Target: Basys 3 (Artix-7 FPGA)</p>
+            <p>Built for AMD Sling Shot Hackathon 2026 By Bhavin / Nishant</p>
         </footer>
     </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    
+    <!-- Firebase Configuration -->
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyC_pXQ5EBKIK4Pm_eT-YUgAg1-biM-Wkp8",
+            authDomain: "amdhacakthon.firebaseapp.com",
+            databaseURL: "https://amdhacakthon-default-rtdb.firebaseio.com",
+            projectId: "amdhacakthon",
+            storageBucket: "amdhacakthon.firebasestorage.app",
+            messagingSenderId: "392404561612",
+            appId: "1:392404561612:web:a9402083e9d2226ddc1c69",
+            measurementId: "G-XPS2X6QVT7"
+        };
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        console.log('🔥 Firebase connected successfully!');
+    </script>
 
     <script src="static/main.js"></script>
 </body>
