@@ -325,7 +325,12 @@ if __name__ == '__main__':
     print("🚀 AMD Agentic Hardware Co-Design Platform")
     print("="*60)
     print(f"API Key configured: {'✅' if GEMINI_API_KEY else '❌'}")
-    print("Starting Flask server on http://localhost:5000")
+    
+    # Get port from environment variable (Render provides this)
+    port = int(os.getenv('PORT', 5000))
+    host = os.getenv('HOST', '0.0.0.0')
+    
+    print(f"Starting Flask server on {host}:{port}")
     print("="*60 + "\n")
     
-    app.run(debug=True, port=5000)
+    app.run(debug=False, host=host, port=port)
