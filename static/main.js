@@ -1,5 +1,5 @@
 // API Configuration
-const API_BASE_URL = 'http://localhost:5000';
+const API_BASE_URL = '';
 
 // DOM Elements
 const generateBtn = document.getElementById('generateBtn');
@@ -9,8 +9,17 @@ const resultsSection = document.getElementById('resultsSection');
 const errorSection = document.getElementById('errorSection');
 const downloadZipBtn = document.getElementById('downloadZipBtn');
 
+// Progress Bar Elements
+const progressBar = document.getElementById('progressBar');
+const progressText = document.getElementById('progressText');
+const progressPercent = document.getElementById('progressPercent');
+const elapsedTime = document.getElementById('elapsedTime');
+const estimatedTime = document.getElementById('estimatedTime');
+
 // Store current project data
 let currentProjectData = null;
+let progressInterval = null;
+let startTime = null;
 
 // Agent Status Elements
 const agent1Element = document.getElementById('agent1');
@@ -26,6 +35,12 @@ const testbenchCodeElement = document.getElementById('testbenchCode');
 const vivadoTclScriptElement = document.getElementById('vivadoTclScript');
 const resourceEstimationElement = document.getElementById('resourceEstimation');
 const errorMessageElement = document.getElementById('errorMessage');
+
+// New Hardware Verification Elements
+const agentVerifyElement = document.getElementById('agentVerify');
+const schematicContainer = document.getElementById('schematicContainer');
+const simLogsElement = document.getElementById('simLogs');
+const simStatusBadge = document.getElementById('simStatusBadge');
 
 // Event Listeners
 generateBtn.addEventListener('click', handleGenerate);
@@ -51,10 +66,13 @@ async function handleGenerate() {
     // Reset UI
     resetUI();
 
-    // Show status section
+    // Show status section and start progress
     statusSection.style.display = 'block';
     resultsSection.style.display = 'none';
     errorSection.style.display = 'none';
+    
+    // Start progress bar
+    startProgress();
 
     // Disable button
     generateBtn.disabled = true;
@@ -65,7 +83,10 @@ async function handleGenerate() {
         // Update Agent 1 Status
         updateAgentStatus(agent1Element, 'running', '🔄 Working...');
 
-        // Make API Request
+        // Make API Request with timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 180000); // 3 minute timeout
+        
         const response = await fetch(`${API_BASE_URL}/generate-agentic-project`, {
             method: 'POST',
             headers: {
@@ -73,24 +94,59 @@ async function handleGenerate() {
             },
             body: JSON.stringify({
                 userPrompt: userPrompt
-            })
+            }),
+            signal: controller.signal
         });
+        
+        clearTimeout(timeoutId);
 
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || `HTTP ${response.status}`);
+            let errorMsg = `HTTP ${response.status}`;
+            try {
+                const errorData = await response.json();
+                errorMsg = errorData.error || errorMsg;
+            } catch (e) {
+                // If JSON parsing fails, try to get text
+                try {
+                    const errorText = await response.text();
+                    errorMsg = errorText || errorMsg;
+                } catch (e2) {
+                    // Use default error message
+                }
+            }
+            throw new Error(errorMsg);
         }
 
-        const data = await response.json();
+        let data;
+        try {
+            data = await response.json();
+        } catch (jsonError) {
+            console.error('JSON parse error:', jsonError);
+            const responseText = await response.text();
+            console.error('Response text:', responseText.substring(0, 500));
+            throw new Error('Server returned invalid JSON. Please check console for details.');
+        }
 
         // Simulate Agent Progress (in real implementation, you'd use WebSockets or SSE)
         await simulateAgentProgress();
 
+        // Complete progress bar
+        completeProgress();
+        
+        // Mark all agents as complete
+        updateAgentStatus(agent1Element, 'done', '✅ Complete');
+        updateAgentStatus(agent2Element, 'done', '✅ Complete');
+        
+        if (data.rtl && data.rtl.simPassed) {
+            updateAgentStatus(agentVerifyElement, 'done', '✅ Verified');
+        } else {
+            updateAgentStatus(agentVerifyElement, 'failed', '⚠️ Issues Found');
+        }
+        
+        updateAgentStatus(agent3Element, 'done', '✅ Complete');
+
         // Display Results
         displayResults(data);
-        
-        // Save to Firebase
-        saveProjectToFirebase(data);
 
         // Mark all agents as complete
         updateAgentStatus(agent1Element, 'done', '✅ Complete');
@@ -99,7 +155,17 @@ async function handleGenerate() {
 
     } catch (error) {
         console.error('Error:', error);
-        showError(error.message);
+        
+        let errorMessage = error.message;
+        if (error.name === 'AbortError') {
+            errorMessage = 'Request timed out after 3 minutes. Please try a simpler design or try again.';
+        }
+        
+        showError(errorMessage);
+        
+        // Stop progress on error
+        if (progressInterval) clearInterval(progressInterval);
+        updateProgress(0, '❌ Error occurred', 0, 0);
         
         // Mark current agent as failed
         updateAgentStatus(agent1Element, 'failed', '❌ Failed');
@@ -124,6 +190,11 @@ async function simulateAgentProgress() {
     updateAgentStatus(agent2Element, 'running', '🔄 Coding...');
     await sleep(1000);
     updateAgentStatus(agent2Element, 'done', '✅ Complete');
+
+    // Agent Verification (New)
+    updateAgentStatus(agentVerifyElement, 'running', '🔬 Simulating...');
+    await sleep(1200);
+    updateAgentStatus(agentVerifyElement, 'done', '✅ Verified');
 
     // Agent 3
     updateAgentStatus(agent3Element, 'running', '🔄 Integrating...');
@@ -180,6 +251,33 @@ function displayResults(data) {
             moduleListElement.innerHTML = '<p>No modules listed</p>';
         }
     }
+    
+    // Display models used (if available)
+    if (data.modelsUsed && data.modelsUsed.length > 0) {
+        const modelInfo = document.createElement('div');
+        modelInfo.className = 'model-info';
+        modelInfo.style.cssText = 'background: linear-gradient(135deg, rgba(14, 165, 233, 0.1) 0%, rgba(2, 132, 199, 0.1) 100%); padding: 12px 20px; border-radius: 8px; margin: 15px 0; border-left: 3px solid #0ea5e9;';
+        modelInfo.innerHTML = `
+            <div style="font-weight: 600; color: #0ea5e9; margin-bottom: 8px; font-size: 14px;">
+                🤖 AI Models Used:
+            </div>
+            <div style="font-family: 'Courier New', monospace; font-size: 13px; color: #94a3b8;">
+                ${data.modelsUsed.map(model => `<div style="padding: 2px 0;">• ${model}</div>`).join('')}
+            </div>
+        `;
+        
+        // Insert after project title safely
+        const architectureSection = document.getElementById('architectureContent');
+        if (architectureSection && architectureSection.firstElementChild) {
+            const insertPoint = architectureSection.firstElementChild.nextElementSibling;
+            if (insertPoint) {
+                architectureSection.insertBefore(modelInfo, insertPoint);
+            } else {
+                // If no next sibling, just append
+                architectureSection.appendChild(modelInfo);
+            }
+        }
+    }
 
     // RTL Code
     if (data.rtl) {
@@ -199,8 +297,74 @@ function displayResults(data) {
         }
     }
 
+    // NEW: Handle Simulation Results
+    if (data.rtl) {
+        if (simLogsElement) {
+            simLogsElement.textContent = data.rtl.simLogs || 'No simulation logs generated.';
+        }
+        
+        if (simStatusBadge) {
+            if (data.rtl.simPassed) {
+                simStatusBadge.textContent = '✅ PASSED';
+                simStatusBadge.className = 'badge success';
+            } else {
+                simStatusBadge.textContent = '❌ FAILED';
+                simStatusBadge.className = 'badge error';
+            }
+        }
+
+        // Generate and display professional schematic
+        updateRTLSchematic(data.rtl.verilogCode);
+    }
+
     // Scroll to results
     resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// Professional RTL Schematic Logic
+async function updateRTLSchematic(verilogCode) {
+    if (!schematicContainer) return;
+    
+    schematicContainer.innerHTML = `
+        <div class="schematic-loading">
+            <div class="mini-spinner"></div>
+            <p>Synthesizing professional RTL schematic...</p>
+        </div>
+    `;
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/synthesize`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ verilogCode })
+        });
+
+        if (!response.ok) throw new Error('Synthesis failed');
+
+        const data = await response.json();
+        if (data.svg) {
+            // Success: Inject the SVG into the container
+            schematicContainer.innerHTML = data.svg;
+            
+            // Add zoom/pan support if library is available or just let it scale
+            const svg = schematicContainer.querySelector('svg');
+            if (svg) {
+                svg.setAttribute('width', '100%');
+                svg.setAttribute('height', 'auto');
+                svg.style.borderRadius = '8px';
+            }
+        } else {
+            throw new Error(data.error || 'Unknown synthesis error');
+        }
+    } catch (error) {
+        console.error('Schematic Error:', error);
+        schematicContainer.innerHTML = `
+            <div class="schematic-error">
+                <p>⚠️ Schematic visualization unavailable on this system.</p>
+                <small>Requires Yosys and NetlistSVG to be installed.</small>
+            </div>
+        `;
+    }
 }
 
 // Show Error
@@ -217,7 +381,8 @@ function showError(message) {
 // Reset UI
 function resetUI() {
     // Reset agent statuses
-    [agent1Element, agent2Element, agent3Element].forEach(element => {
+    [agent1Element, agent2Element, agentVerifyElement, agent3Element].forEach(element => {
+        if (!element) return;
         element.classList.remove('active', 'complete', 'error');
         const stateElement = element.querySelector('.agent-state');
         stateElement.classList.remove('running', 'done', 'failed');
@@ -233,6 +398,16 @@ function resetUI() {
     testbenchCodeElement.textContent = '';
     vivadoTclScriptElement.textContent = '';
     resourceEstimationElement.innerHTML = '';
+    
+    if (schematicContainer) {
+        schematicContainer.innerHTML = `
+            <div class="schematic-placeholder">
+                <p>Generating hardware schematic...</p>
+            </div>
+        `;
+    }
+    
+    if (simLogsElement) simLogsElement.textContent = '';
 }
 
 // Copy to Clipboard
@@ -280,6 +455,212 @@ ${moduleListElement.textContent}
 // Utility: Sleep
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// Show save prompt for non-authenticated users
+function showSavePrompt() {
+    const promptDiv = document.createElement('div');
+    promptDiv.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+        color: white;
+        padding: 20px 25px;
+        border-radius: 12px;
+        box-shadow: 0 8px 30px rgba(14, 165, 233, 0.5);
+        z-index: 10000;
+        max-width: 350px;
+        animation: slideInUp 0.5s ease;
+    `;
+    
+    promptDiv.innerHTML = `
+        <div style="display: flex; align-items: start; gap: 15px;">
+            <div style="font-size: 32px;">💾</div>
+            <div style="flex: 1;">
+                <div style="font-weight: 700; font-size: 16px; margin-bottom: 8px;">Save Your Work?</div>
+                <div style="font-size: 14px; opacity: 0.95; margin-bottom: 15px;">Sign in to save this design and access it later from any device!</div>
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="document.querySelector('.sign-in-btn').click(); this.parentElement.parentElement.parentElement.parentElement.remove();" 
+                            style="flex: 1; padding: 10px; background: white; color: #0284c7; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;">
+                        Sign In to Save
+                    </button>
+                    <button onclick="this.parentElement.parentElement.parentElement.parentElement.remove();" 
+                            style="padding: 10px 15px; background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 8px; cursor: pointer;">
+                        Skip
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(promptDiv);
+    
+    // Auto-remove after 10 seconds
+    setTimeout(() => {
+        if (promptDiv.parentElement) {
+            promptDiv.style.animation = 'slideOutDown 0.5s ease';
+            setTimeout(() => promptDiv.remove(), 500);
+        }
+    }, 10000);
+}
+
+// ========================================
+// PROGRESS BAR FUNCTIONS
+// ========================================
+
+function updateProgress(percent, text, elapsed, estimated) {
+    if (progressBar) progressBar.style.width = percent + '%';
+    if (progressText) progressText.textContent = text;
+    if (progressPercent) progressPercent.textContent = Math.round(percent) + '%';
+    if (elapsedTime) elapsedTime.textContent = `Elapsed: ${elapsed}s`;
+    if (estimatedTime) estimatedTime.textContent = `Estimated: ~${estimated}s`;
+}
+
+function startProgress() {
+    startTime = Date.now();
+    let progress = 0;
+    const totalEstimated = 30; // 30 seconds estimated
+    
+    updateProgress(0, 'Initializing AI agents...', 0, totalEstimated);
+    
+    progressInterval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        const remaining = Math.max(0, totalEstimated - elapsed);
+        
+        // Smooth progress increase
+        if (progress < 25) {
+            progress += 0.5; // Slower at start
+        } else if (progress < 90) {
+            progress += 0.3; // Medium speed
+        } else if (progress < 95) {
+            progress += 0.1; // Very slow near end
+        }
+        
+        // Update text based on progress
+        let text = 'Initializing AI agents...';
+        if (progress >= 10 && progress < 40) {
+            text = '🕵️‍♂️ System Architect analyzing requirements...';
+        } else if (progress >= 40 && progress < 70) {
+            text = '👨‍💻 RTL Engineer writing Verilog code...';
+        } else if (progress >= 70 && progress < 95) {
+            text = '🧐 Vivado Integrator creating build scripts...';
+        } else if (progress >= 95) {
+            text = 'Finalizing design...';
+        }
+        
+        updateProgress(progress, text, elapsed, remaining);
+        
+        if (progress >= 99) {
+            clearInterval(progressInterval);
+        }
+    }, 200);
+}
+
+function completeProgress() {
+    if (progressInterval) clearInterval(progressInterval);
+    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+    updateProgress(100, '✅ Design generation complete!', elapsed, 0);
+}
+
+function resetProgress() {
+    if (progressInterval) clearInterval(progressInterval);
+    updateProgress(0, 'Ready', 0, 30);
+}
+
+// ========================================
+// AI CHAT ASSISTANT
+// ========================================
+
+let chatHistory = [];
+
+function toggleChat() {
+    const chatPanel = document.getElementById('chatPanel');
+    const chatToggle = document.getElementById('chatToggle');
+    
+    if (chatPanel.classList.contains('open')) {
+        chatPanel.classList.remove('open');
+        chatToggle.textContent = '💬';
+    } else {
+        chatPanel.classList.add('open');
+        chatToggle.textContent = '✕';
+    }
+}
+
+async function sendChatMessage() {
+    const chatInput = document.getElementById('chatInput');
+    const message = chatInput.value.trim();
+    
+    if (!message) return;
+    
+    // Add user message
+    addChatMessage(message, 'user');
+    chatInput.value = '';
+    
+    // Disable send button
+    const sendBtn = document.getElementById('chatSendBtn');
+    sendBtn.disabled = true;
+    sendBtn.textContent = 'Thinking...';
+    
+    try {
+        // Send to backend
+        const response = await fetch(`${API_BASE_URL}/chat-assistant`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                message: message,
+                projectData: currentProjectData,
+                history: chatHistory
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            addChatMessage(data.response, 'assistant');
+        } else {
+            addChatMessage('Sorry, I encountered an error. Please try again.', 'assistant');
+        }
+    } catch (error) {
+        console.error('Chat error:', error);
+        addChatMessage('Sorry, I\'m having trouble connecting. Please try again later.', 'assistant');
+    } finally {
+        sendBtn.disabled = false;
+        sendBtn.textContent = 'Send 🚀';
+    }
+}
+
+function addChatMessage(content, type) {
+    const chatMessages = document.getElementById('chatMessages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `chat-message ${type}`;
+    
+    const avatar = type === 'user' ? '👤' : '🤖';
+    
+    // Build DOM safely to prevent XSS
+    const avatarDiv = document.createElement('div');
+    avatarDiv.className = 'message-avatar';
+    avatarDiv.textContent = avatar;
+    
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'message-content';
+    
+    // Split by newlines and create separate <p> elements
+    const lines = content.split('\n');
+    lines.forEach(line => {
+        const p = document.createElement('p');
+        p.textContent = line;
+        contentDiv.appendChild(p);
+    });
+    
+    messageDiv.appendChild(avatarDiv);
+    messageDiv.appendChild(contentDiv);
+    
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    
+    // Store in history
+    chatHistory.push({ role: type, content: content });
 }
 
 // Initialize
@@ -388,8 +769,7 @@ function saveProjectToFirebase(projectData) {
     }
     
     if (!currentUser) {
-        console.log('User not signed in, skipping save');
-        alert('Please sign in to save your projects!');
+        console.log('User not signed in, skipping auto-save');
         return;
     }
     

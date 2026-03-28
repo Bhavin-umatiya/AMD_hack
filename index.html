@@ -31,7 +31,7 @@
             <div class="user-signed-out" id="signedOut">
                 <button class="sign-in-btn" onclick="signInWithGoogle()">
                     <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width="18">
-                    Sign in with Google
+                    Sign In
                 </button>
             </div>
             <div class="user-signed-in" id="signedIn" style="display: none;">
@@ -48,7 +48,7 @@
         <header class="header">
             <div class="logo-section">
                 <h1>🔧 AMD Agentic Hardware Co-Design Platform</h1>
-                <p class="subtitle">AI-Powered FPGA Design Generation | AMD Sling Shot Hackathon 2026</p>
+                <p class="subtitle">AI-Powered FPGA Design Generation | AMD Sling Shot Hackathon 2026 | <span style="opacity: 0.85;">Try it now - no sign-in required!</span></p>
             </div>
         </header>
 
@@ -77,6 +77,22 @@
             <!-- Status Section -->
             <section class="status-section" id="statusSection" style="display: none;">
                 <h3>📊 Pipeline Status</h3>
+                
+                <!-- Progress Bar -->
+                <div class="progress-container">
+                    <div class="progress-info">
+                        <span id="progressText">Initializing...</span>
+                        <span id="progressPercent">0%</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" id="progressBar"></div>
+                    </div>
+                    <div class="progress-time">
+                        <span id="elapsedTime">Elapsed: 0s</span>
+                        <span id="estimatedTime">Estimated: ~30s</span>
+                    </div>
+                </div>
+
                 <div class="agent-status">
                     <div class="agent-item" id="agent1">
                         <span class="agent-icon">🕵️‍♂️</span>
@@ -86,6 +102,11 @@
                     <div class="agent-item" id="agent2">
                         <span class="agent-icon">👨‍💻</span>
                         <span class="agent-name">RTL Engineer</span>
+                        <span class="agent-state pending">⏳ Waiting</span>
+                    </div>
+                    <div class="agent-item" id="agentVerify">
+                        <span class="agent-icon">🔬</span>
+                        <span class="agent-name">Simulation & Fix</span>
                         <span class="agent-state pending">⏳ Waiting</span>
                     </div>
                     <div class="agent-item" id="agent3">
@@ -103,13 +124,29 @@
                     <button id="downloadZipBtn" class="download-zip-btn">📦 Download Complete Project (.zip)</button>
                 </div>
 
-                <!-- Block Diagram Card -->
+                <!-- NEW: Professional RTL Schematic Card -->
                 <div class="result-card">
                     <div class="card-header">
-                        <h3>🎨 System Block Diagram</h3>
+                        <h3>🛠️ Professional RTL Schematic</h3>
+                        <div class="card-actions">
+                            <button id="refreshSchematicBtn" class="action-btn">🔄 Refresh</button>
+                        </div>
+                    </div>
+                    <div class="card-content schematic-container" id="schematicContainer">
+                        <div class="schematic-placeholder">
+                            <p>Generating professional gate-level schematic...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NEW: Simulation Feedback Card -->
+                <div class="result-card" id="simulationCard">
+                    <div class="card-header">
+                        <h3>🔬 Simulation & Verification Results</h3>
+                        <span id="simStatusBadge" class="badge">N/A</span>
                     </div>
                     <div class="card-content">
-                        <canvas id="blockDiagram" width="1200" height="400"></canvas>
+                        <pre id="simLogs" class="code-block logs-block"></pre>
                     </div>
                 </div>
 
@@ -159,6 +196,16 @@
                         <div id="resourceEstimation" class="resource-estimation"></div>
                     </div>
                 </div>
+
+                <!-- Block Diagram Card (Legacy) -->
+                <div class="result-card">
+                    <div class="card-header">
+                        <h3>🎨 High-Level Block Diagram</h3>
+                    </div>
+                    <div class="card-content">
+                        <canvas id="blockDiagram" width="1200" height="400"></canvas>
+                    </div>
+                </div>
             </section>
 
             <!-- Error Section -->
@@ -172,6 +219,45 @@
         <footer class="footer">
             <p>Built for AMD Sling Shot Hackathon 2026 By Bhavin / Nishant</p>
         </footer>
+    </div>
+
+    <!-- AI Chat Assistant -->
+    <button class="chat-toggle" id="chatToggle" onclick="toggleChat()" title="AI Design Assistant">
+        💬
+    </button>
+
+    <div class="chat-panel" id="chatPanel">
+        <div class="chat-header">
+            <h3>🤖 AI Design Assistant</h3>
+            <button class="close-chat" onclick="toggleChat()">✕</button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="chat-message assistant">
+                <div class="message-avatar">🤖</div>
+                <div class="message-content">
+                    <p>Hi! I'm your AI Design Assistant. I can help you:</p>
+                    <ul>
+                        <li>Refine your hardware design</li>
+                        <li>Add/modify features</li>
+                        <li>Explain generated code</li>
+                        <li>Optimize resources</li>
+                    </ul>
+                    <p>What would you like to know?</p>
+                </div>
+            </div>
+        </div>
+        <div class="chat-input-container">
+            <textarea 
+                id="chatInput" 
+                class="chat-input" 
+                placeholder="Ask me anything about your design..." 
+                rows="2"
+                onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendChatMessage(); }"
+            ></textarea>
+            <button class="chat-send-btn" id="chatSendBtn" onclick="sendChatMessage()">
+                <span>Send 🚀</span>
+            </button>
+        </div>
     </div>
 
     <!-- Firebase SDK -->

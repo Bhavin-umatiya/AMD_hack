@@ -4,11 +4,36 @@ An AI-powered multi-agent system for automated hardware design generation using 
 
 ## 🎯 Overview
 
-This platform uses a sequential three-agent pipeline powered by Google Gemini AI:
+This platform uses a sequential three-agent pipeline with **intelligent AI model fallback**:
 
 1. **System Architect** - Designs high-level hardware architecture
 2. **RTL Engineer** - Generates synthesizable Verilog code and testbenches
 3. **Vivado Integrator** - Creates Vivado TCL scripts and resource estimations
+
+### 🤖 Multi-Model AI System
+
+Each agent independently tries AI models in this order:
+- **Primary**: Google Gemini 2.0 Flash (fast, powerful)
+- **Fallback**: Groq Llama 3.1 70B (FREE unlimited, ultra-fast)
+
+**Per-Agent Fallback Flow**:
+```
+User generates design
+    ↓
+Agent 1: Try Gemini
+    ├─ Success? → Use Gemini ✅
+    └─ Failed? → Try Groq ✅
+    
+Agent 2: Try Gemini
+    ├─ Success? → Use Gemini ✅
+    └─ Failed? → Try Groq ✅
+    
+Agent 3: Try Gemini
+    ├─ Success? → Use Gemini ✅
+    └─ Failed? → Try Groq ✅
+```
+
+This ensures **maximum reliability** - if Gemini quota is exhausted or fails, Groq takes over seamlessly for each individual agent.
 
 ## 🚀 Local Setup
 
@@ -17,13 +42,17 @@ This platform uses a sequential three-agent pipeline powered by Google Gemini AI
    pip install -r requirements.txt
    ```
 
-2. **Configure API Key**
+2. **Configure API Keys**
    - Create a `.env` file in the project root
-   - Add your Gemini API key:
+   - Add your API keys:
      ```
-     GEMINI_API_KEY=your_actual_api_key_here
+     # Primary (Gemini) - Get from: https://aistudio.google.com/app/apikey
+     GEMINI_API_KEY=your_gemini_api_key_here
+     
+     # Fallback (Groq) - Get from: https://console.groq.com/keys (FREE)
+     GROQ_API_KEY=your_groq_api_key_here
      ```
-   - Get your key from: https://aistudio.google.com/app/apikey
+   - **Note**: At least one API key required. Both recommended for reliability.
 
 3. **Run the Server**
    ```bash
@@ -54,11 +83,11 @@ This platform uses a sequential three-agent pipeline powered by Google Gemini AI
    - Connect your GitHub repository
    - Render will auto-detect the `render.yaml` configuration
 
-4. **Add Environment Variable**
+4. **Add Environment Variables**
    - In Render dashboard, go to "Environment"
-   - Add variable:
-     - **Key**: `GEMINI_API_KEY`
-     - **Value**: Your Gemini API key
+   - Add variables:
+     - **Key**: `GEMINI_API_KEY` | **Value**: Your Gemini API key
+     - **Key**: `GROQ_API_KEY` | **Value**: Your Groq API key (optional)
    - Click "Save Changes"
 
 5. **Deploy**
@@ -76,7 +105,11 @@ Request body:
 }
 ```
 
-Response includes architecture design, Verilog code, testbench, and Vivado TCL script.
+Response includes:
+- Architecture design
+- Verilog code & testbench
+- Vivado TCL script
+- **Models used** (shows which AI was used for each agent)
 
 ## 🏆 AMD Sling Shot Hackathon
 
@@ -87,7 +120,9 @@ Target Platform: Basys 3 (Artix-7 FPGA - xc7a35tcpg236-1)
 ## 🔧 Tech Stack
 
 - **Backend**: Flask (Python)
-- **AI**: Google Gemini 2.0 Flash
+- **AI Models**: 
+  - Google Gemini 2.0 Flash (primary)
+  - Groq Llama 3.1 70B (fallback, FREE unlimited)
 - **Frontend**: Vanilla JavaScript, HTML5, CSS3
 - **Database**: Firebase Firestore
 - **Auth**: Firebase Authentication (Google Sign-In)
