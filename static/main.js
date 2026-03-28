@@ -300,7 +300,7 @@ function displayResults(data) {
     // NEW: Handle Simulation Results
     if (data.rtl) {
         if (simLogsElement) {
-            simLogsElement.textContent = data.rtl.simLogs || 'No simulation logs generated.';
+            simLogsElement.textContent = data.rtl.simulationLogs || 'No simulation logs generated.';
         }
         
         if (simStatusBadge) {
@@ -350,7 +350,7 @@ async function updateRTLSchematic(verilogCode) {
             const svg = schematicContainer.querySelector('svg');
             if (svg) {
                 svg.setAttribute('width', '100%');
-                svg.setAttribute('height', 'auto');
+                svg.style.height = 'auto'; // Fixed attribute error
                 svg.style.borderRadius = '8px';
             }
         } else {

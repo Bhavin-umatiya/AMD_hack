@@ -365,7 +365,7 @@ def generate_rtl_schematic(verilog_code):
         
         yosys_cmd = [
             'yosys', '-p', 
-            f'read_verilog {v_path}; prep -top {top_module}; write_json {json_path}'
+            f'read_verilog {v_path}; synth -top {top_module}; write_json {json_path}'
         ]
         
         yosys_res = subprocess.run(yosys_cmd, capture_output=True, text=True, timeout=15)
