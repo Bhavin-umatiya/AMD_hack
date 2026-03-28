@@ -1,0 +1,27 @@
+{
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "node_modules/**",
+      "venv/**",
+      "app.py",
+      "Dockerfile",
+      "render.yaml",
+      "requirements.txt",
+      "test_app.py",
+      "start.bat",
+      "start.sh"
+    ],
+    "rewrites": [
+      {
+        "source": "/api/**",
+        "run": {
+          "serviceId": "amd-hardware-agent",
+          "region": "us-central1"
+        }
+      }
+    ]
+  }
+}
