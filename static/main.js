@@ -829,7 +829,7 @@ console.log('API Endpoint:', API_BASE_URL);
 
 // Load project history when page loads
 document.addEventListener('DOMContentLoaded', () => {
-    initAuth();
+    // Auth is managed by the observer at the top; no need for initAuth()
 });
 
 // Authentication logic is handled by the state observer at the top of the file
