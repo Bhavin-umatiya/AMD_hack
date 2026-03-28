@@ -1,4 +1,5 @@
-// API Configuration
+// AMD Agentic Hardware Co-Design Platform
+// Version: 1.0.2 (Cache-Bust)
 const API_BASE_URL = '';
 
 // DOM Elements
