@@ -1110,7 +1110,7 @@ body {
 
 /* RTL Schematic Dark Mode Optimization */
 .schematic-viewer {
-    background: #0f172a !important; /* Deeper background for contrast */
+    background: #0f172a !important;
     padding: 20px;
     border-radius: 8px;
     overflow: auto;
@@ -1118,25 +1118,105 @@ body {
 }
 
 .schematic-viewer svg {
-    filter: brightness(1.2) contrast(1.1); /* Slight boost */
+    filter: brightness(1.2) contrast(1.1);
 }
 
-/* Force stroke and text visibility for all parts in SVG */
 .schematic-viewer svg path, 
 .schematic-viewer svg rect, 
 .schematic-viewer svg circle, 
 .schematic-viewer svg line {
-    stroke: #e2e8f0 !important; /* Lighter slate stroke */
+    stroke: #e2e8f0 !important;
     stroke-width: 1.5px !important;
 }
 
 .schematic-viewer svg text {
-    fill: #f8fafc !important; /* Near white for labels */
+    fill: #f8fafc !important;
     font-weight: 600 !important;
     font-family: 'Inter', system-ui, sans-serif !important;
 }
 
 .schematic-viewer svg g g rect {
-    fill: #1e293b !important; /* Darker fill for gate boxes */
-    stroke: #38bdf8 !important; /* Blue stroke for primary modules */
+    fill: #1e293b !important;
+    stroke: #38bdf8 !important;
+}
+
+/* Final Mobile Responsiveness & Polish */
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+
+    /* Move fixed overlap buttons to relative for mobile */
+    .history-toggle, .user-profile {
+        position: static !important;
+        width: 100%;
+        margin-bottom: 10px;
+        box-shadow: none;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+    }
+    
+    .history-toggle {
+        margin-top: 20px;
+    }
+
+    .user-profile {
+        margin-top: 0;
+        margin-bottom: 20px;
+    }
+
+    .sign-in-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .header h1 {
+        font-size: 1.8rem;
+    }
+
+    .pipeline-status {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+        padding: 15px;
+    }
+
+    .agent-item {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .card-header {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+
+    .copy-btn, .action-btn {
+        width: 100%;
+    }
+
+    .footer {
+        padding: 20px 10px;
+        text-align: center;
+    }
+
+    .footer p {
+        font-size: 0.8rem;
+        word-break: break-word;
+    }
+
+    /* Ensure code blocks don't break layout */
+    .code-block {
+        font-size: 12px;
+        padding: 15px;
+        overflow-x: auto;
+    }
+
+    /* Schematic container should scroll horizontally on tiny screens */
+    .schematic-viewer {
+        padding: 10px;
+        min-height: 300px;
+    }
 }
