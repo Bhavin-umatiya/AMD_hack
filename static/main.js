@@ -16,10 +16,16 @@ const progressPercent = document.getElementById('progressPercent');
 const elapsedTime = document.getElementById('elapsedTime');
 const estimatedTime = document.getElementById('estimatedTime');
 
-// Store current project data
-let currentProjectData = null;
-let progressInterval = null;
 let startTime = null;
+let currentUser = null; 
+
+// Dynamic Firestore reference to avoid initialization races
+function getDb() {
+    if (typeof firebase !== 'undefined') {
+        return firebase.firestore();
+    }
+    return null;
+}
 
 // Agent Status Elements
 const agent1Element = document.getElementById('agent1');
@@ -739,29 +745,37 @@ function addChatMessage(content, type, skipSaveToCloud = false) {
     }
 }
 
-// ========================================
-// CHAT PERSISTENCE (Firestore)
-// ========================================
-
 async function saveChatMessageToCloud(content, type) {
-    if (!currentUser || !db) return;
+    const db = getDb();
+    if (!currentUser || !db) {
+        console.warn('⚠️ Cloud Sync skipped: Not logged in or database not ready.');
+        return;
+    }
     
     try {
+        console.log('☁️ Syncing chat to Firebase for user:', currentUser.email);
         await db.collection('users').doc(currentUser.uid).collection('chats').add({
             content: content,
             type: type,
             timestamp: firebase.firestore.FieldValue.serverTimestamp(),
             projectTitle: currentProjectData ? currentProjectData.architecture.projectTitle : 'General Chat'
         });
+        console.log('✅ Chat synced successfully!');
     } catch (error) {
-        console.error('Error saving chat to cloud:', error);
+        console.error('❌ Firestore Write Error:', error);
+        // Special alert for hackathon judges/users if permissions fail
+        if (error.code === 'permission-denied') {
+            console.error('👉 Tip: Ensure your Firestore Rules are set to "Allow all" for the hackathon.');
+        }
     }
 }
 
 async function loadChatHistoryFromCloud() {
+    const db = getDb();
     if (!currentUser || !db) return;
     
     const chatMessages = document.getElementById('chatMessages');
+    if (!chatMessages) return;
     
     try {
         const snapshot = await db.collection('users').doc(currentUser.uid).collection('chats')
@@ -811,8 +825,7 @@ async function clearChatHistory() {
 console.log('AMD Agentic Hardware Co-Design Platform - Frontend Loaded');
 console.log('API Endpoint:', API_BASE_URL);
 
-// Current authenticated user
-let currentUser = null;
+// Current authenticated user state is managed globally
 
 // Load project history when page loads
 document.addEventListener('DOMContentLoaded', () => {
