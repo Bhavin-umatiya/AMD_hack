@@ -80,6 +80,7 @@ firebase.auth().onAuthStateChanged((user) => {
         currentUser = user;
         updateUIForSignedInUser(user);
         loadProjectHistory();
+        loadChatHistoryFromCloud(); // Fix: Restore chat history on login
     } else {
         // User is signed out
         currentUser = null;
