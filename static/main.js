@@ -42,6 +42,70 @@ const schematicContainer = document.getElementById('schematicContainer');
 const simLogsElement = document.getElementById('simLogs');
 const simStatusBadge = document.getElementById('simStatusBadge');
 
+// Firebase Auth UI Elements
+const signedOutUI = document.getElementById('signedOut');
+const signedInUI = document.getElementById('signedIn');
+const userAvatar = document.getElementById('userAvatar');
+const userName = document.getElementById('userName');
+const userEmail = document.getElementById('userEmail');
+
+// ========================================
+// AUTHENTICATION LOGIC
+// ========================================
+
+// Sign in with Google
+async function signInWithGoogle() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    try {
+        await firebase.auth().signInWithPopup(provider);
+    } catch (error) {
+        console.error('Sign-in Error:', error);
+        alert('Failed to sign in: ' + error.message);
+    }
+}
+
+// Sign Out
+async function signOut() {
+    try {
+        await firebase.auth().signOut();
+    } catch (error) {
+        console.error('Sign-out Error:', error);
+    }
+}
+
+// Auth State Observer
+firebase.auth().onAuthStateChanged((user) => {
+    if (user) {
+        // User is signed in
+        currentUser = user;
+        updateUIForSignedInUser(user);
+        loadProjectHistory();
+    } else {
+        // User is signed out
+        currentUser = null;
+        updateUIForSignedOutUser();
+    }
+});
+
+function updateUIForSignedInUser(user) {
+    if (signedOutUI) signedOutUI.style.display = 'none';
+    if (signedInUI) signedInUI.style.display = 'flex';
+    if (userAvatar) userAvatar.src = user.photoURL || 'https://via.placeholder.com/40';
+    if (userName) userName.textContent = user.displayName || 'User';
+    if (userEmail) userEmail.textContent = user.email || '';
+}
+
+function updateUIForSignedOutUser() {
+    if (signedOutUI) signedOutUI.style.display = 'flex';
+    if (signedInUI) signedInUI.style.display = 'none';
+    
+    // Clear history
+    const historyContainer = document.getElementById('projectHistory');
+    if (historyContainer) {
+        historyContainer.innerHTML = '<p class="no-history">Please sign in to view your projects</p>';
+    }
+}
+
 // Event Listeners
 generateBtn.addEventListener('click', handleGenerate);
 
@@ -675,83 +739,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initAuth();
 });
 
-// ========================================
-// FIREBASE AUTHENTICATION
-// ========================================
-
-function initAuth() {
-    if (typeof firebase === 'undefined' || !auth) {
-        console.log('Firebase Auth not available');
-        return;
-    }
-    
-    // Listen for auth state changes
-    auth.onAuthStateChanged((user) => {
-        if (user) {
-            // User is signed in
-            currentUser = user;
-            console.log('✅ User signed in:', user.email);
-            updateUIForSignedInUser(user);
-            loadProjectHistory();
-        } else {
-            // User is signed out
-            currentUser = null;
-            console.log('❌ User signed out');
-            updateUIForSignedOutUser();
-        }
-    });
-}
-
-function signInWithGoogle() {
-    if (typeof firebase === 'undefined' || !auth) {
-        alert('Firebase Auth not available');
-        return;
-    }
-    
-    const provider = new firebase.auth.GoogleAuthProvider();
-    
-    auth.signInWithPopup(provider)
-        .then((result) => {
-            console.log('✅ Signed in successfully:', result.user.email);
-        })
-        .catch((error) => {
-            console.error('❌ Sign-in error:', error);
-            alert('Failed to sign in: ' + error.message);
-        });
-}
-
-function signOut() {
-    if (typeof firebase === 'undefined' || !auth) {
-        alert('Firebase Auth not available');
-        return;
-    }
-    
-    auth.signOut()
-        .then(() => {
-            console.log('✅ Signed out successfully');
-        })
-        .catch((error) => {
-            console.error('❌ Sign-out error:', error);
-            alert('Failed to sign out: ' + error.message);
-        });
-}
-
-function updateUIForSignedInUser(user) {
-    document.getElementById('signedOut').style.display = 'none';
-    document.getElementById('signedIn').style.display = 'flex';
-    document.getElementById('userAvatar').src = user.photoURL || 'https://via.placeholder.com/40';
-    document.getElementById('userName').textContent = user.displayName || 'User';
-    document.getElementById('userEmail').textContent = user.email;
-}
-
-function updateUIForSignedOutUser() {
-    document.getElementById('signedOut').style.display = 'block';
-    document.getElementById('signedIn').style.display = 'none';
-    
-    // Clear history
-    const historyContainer = document.getElementById('projectHistory');
-    historyContainer.innerHTML = '<p class="no-history">Please sign in to view your projects</p>';
-}
+// Authentication logic is handled by the state observer at the top of the file
 
 // ========================================
 // FIREBASE PROJECT HISTORY (User-Specific)
