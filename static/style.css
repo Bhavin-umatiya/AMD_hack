@@ -1108,12 +1108,35 @@ body {
     transition: background 0.2s;
 }
 
-.action-btn:hover {
-    background: #475569;
+/* RTL Schematic Dark Mode Optimization */
+.schematic-viewer {
+    background: #0f172a !important; /* Deeper background for contrast */
+    padding: 20px;
+    border-radius: 8px;
+    overflow: auto;
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Animations */
-@keyframes slideInUp {
-    from { transform: translateY(20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
+.schematic-viewer svg {
+    filter: brightness(1.2) contrast(1.1); /* Slight boost */
+}
+
+/* Force stroke and text visibility for all parts in SVG */
+.schematic-viewer svg path, 
+.schematic-viewer svg rect, 
+.schematic-viewer svg circle, 
+.schematic-viewer svg line {
+    stroke: #e2e8f0 !important; /* Lighter slate stroke */
+    stroke-width: 1.5px !important;
+}
+
+.schematic-viewer svg text {
+    fill: #f8fafc !important; /* Near white for labels */
+    font-weight: 600 !important;
+    font-family: 'Inter', system-ui, sans-serif !important;
+}
+
+.schematic-viewer svg g g rect {
+    fill: #1e293b !important; /* Darker fill for gate boxes */
+    stroke: #38bdf8 !important; /* Blue stroke for primary modules */
 }
