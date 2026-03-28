@@ -229,7 +229,10 @@
     <div class="chat-panel" id="chatPanel">
         <div class="chat-header">
             <h3>🤖 AI Design Assistant</h3>
-            <button class="close-chat" onclick="toggleChat()">✕</button>
+            <div style="display: flex; gap: 8px;">
+                <button class="action-btn" onclick="clearChatHistory()" title="Clear Chat" style="padding: 4px 8px; font-size: 11px; background: rgba(255,255,255,0.05);">🗑️</button>
+                <button class="close-chat" onclick="toggleChat()">✕</button>
+            </div>
         </div>
         <div class="chat-messages" id="chatMessages">
             <div class="chat-message assistant">

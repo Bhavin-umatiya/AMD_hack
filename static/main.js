@@ -240,6 +240,11 @@ async function handleGenerate() {
         generateBtn.disabled = false;
         document.querySelector('.btn-text').style.display = 'inline';
         document.querySelector('.loading-spinner').style.display = 'none';
+        
+        // NEW: Trigger Chat save reminder if not logged in
+        if (!currentUser) {
+            setTimeout(showSavePrompt, 2000);
+        }
     }
 }
 
@@ -650,7 +655,6 @@ function toggleChat() {
         chatToggle.textContent = '✕';
     }
 }
-
 async function sendChatMessage() {
     const chatInput = document.getElementById('chatInput');
     const message = chatInput.value.trim();
@@ -694,12 +698,14 @@ async function sendChatMessage() {
     }
 }
 
-function addChatMessage(content, type) {
+function addChatMessage(content, type, skipSaveToCloud = false) {
     const chatMessages = document.getElementById('chatMessages');
+    if (!chatMessages) return;
+
     const messageDiv = document.createElement('div');
     messageDiv.className = `chat-message ${type}`;
     
-    const avatar = type === 'user' ? '👤' : '🤖';
+    const avatar = type === 'user' ? '👤' : (type === 'loading' ? '⏳' : '🤖');
     
     // Build DOM safely to prevent XSS
     const avatarDiv = document.createElement('div');
@@ -723,8 +729,81 @@ function addChatMessage(content, type) {
     chatMessages.appendChild(messageDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
     
-    // Store in history
+    // Store in internal history for API context
     chatHistory.push({ role: type, content: content });
+    
+    // NEW: Save to Cloud if logged in and not loading/system message
+    if (currentUser && type !== 'loading' && !skipSaveToCloud) {
+        saveChatMessageToCloud(content, type);
+    }
+}
+
+// ========================================
+// CHAT PERSISTENCE (Firestore)
+// ========================================
+
+async function saveChatMessageToCloud(content, type) {
+    if (!currentUser || !db) return;
+    
+    try {
+        await db.collection('users').doc(currentUser.uid).collection('chats').add({
+            content: content,
+            type: type,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            projectTitle: currentProjectData ? currentProjectData.architecture.projectTitle : 'General Chat'
+        });
+    } catch (error) {
+        console.error('Error saving chat to cloud:', error);
+    }
+}
+
+async function loadChatHistoryFromCloud() {
+    if (!currentUser || !db) return;
+    
+    const chatMessages = document.getElementById('chatMessages');
+    
+    try {
+        const snapshot = await db.collection('users').doc(currentUser.uid).collection('chats')
+            .orderBy('timestamp', 'asc')
+            .limit(50)
+            .get();
+            
+        if (snapshot.empty) return;
+        
+        // Clear current messages
+        chatMessages.innerHTML = '';
+        chatHistory = [];
+        
+        snapshot.forEach(doc => {
+            const chat = doc.data();
+            addChatMessage(chat.content, chat.type, true); // true = skipSaveToCloud
+        });
+        
+    } catch (error) {
+        console.error('Error loading chat history:', error);
+    }
+}
+
+async function clearChatHistory() {
+    if (!confirm('Are you sure you want to clear your chat history?')) return;
+    if (!currentUser || !db) {
+        // Local only clear
+        document.getElementById('chatMessages').innerHTML = '';
+        chatHistory = [];
+        return;
+    }
+    
+    try {
+        const snapshot = await db.collection('users').doc(currentUser.uid).collection('chats').get();
+        const batch = db.batch();
+        snapshot.docs.forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
+        
+        document.getElementById('chatMessages').innerHTML = '';
+        chatHistory = [];
+    } catch (error) {
+        console.error('Error clearing chat:', error);
+    }
 }
 
 // Initialize
