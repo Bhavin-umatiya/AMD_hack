@@ -1,74 +1,106 @@
-# 🚀 AMD Agentic Hardware Co-Design Platform
-**AMD Sling Shot Hackathon 2026 - Winner Category Submission**
+# 🌟 AMD Agentic Hardware Co-Design Platform
+### **AMD Sling Shot Hackathon 2026 - Innovation Category**
 
-[![Render](https://img.shields.io/badge/Render-Live_Site-ED1C24?style=for-the-badge&logo=render&logoColor=white)](https://amd-hardware-agent.onrender.com/)
-[![Firebase](https://img.shields.io/badge/Firebase-Auth_%26_Sync-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://console.firebase.google.com/)
-[![FPGA](https://img.shields.io/badge/Target-Basys_3-4ade80?style=for-the-badge&logo=fpga&logoColor=black)]()
-
-An industrial-grade, AI-powered multi-agent system designed to automate the hardware co-design process for AMD/Xilinx FPGAs. From natural language to synthesizable RTL and Vivado build scripts in seconds.
-
----
-
-## 💎 Premium Features
-
--   **🧠 Sequential Agentic Pipeline**: Three autonomous AI agents (Architect, RTL Engineer, Vivado Integrator) collaborating with intelligent failover (Gemini 2.0 ↔ Groq Llama 3).
--   **🔌 Professional RTL Toolchain**: Built-in `iverilog` simulation and `yosys` gate-level synthesis for industrial RTL visualization.
--   **📱 Mobile-Responsive Ultra-UI**: A stunning glassmorphic interface optimized for both high-end workstations and mobile previews.
--   **☁️ Cloud Silicon Memory**: Real-time project syncing and AI Chat persistence powered by Firebase Firestore and Google Auth.
--   **📦 Vivado-Ready Export**: One-click ZIP export containing structured RTL, Testbenches, and Vivado Tcl build scripts.
+<div align="center">
+  <img src="https://img.shields.io/badge/Render-Live_Site-ED1C24?style=for-the-badge&logo=render&logoColor=white" />
+  <img src="https://img.shields.io/badge/Firebase-Auth_%26_Sync-FFCA28?style=for-the-badge&logo=firebase&logoColor=black" />
+  <img src="https://img.shields.io/badge/Target-AMD_Xilinx_Boards-4ade80?style=for-the-badge&logo=amd&logoColor=white" />
+</div>
 
 ---
 
-## 🕵️‍♂️ The Agentic Design Flow
-
-This platform uses a high-reliability fallback system to ensure your hardware is generated even during high-traffic periods:
-
-1.  **System Architect**: Translates requirements into a structured hardware block diagram.
-2.  **RTL Engineer**: Generates high-performance Verilog code and comprehensive testbenches.
-3.  **Vivado Integrator**: Crafts the Tcl build pipeline and calculates resource estimations for Artix-7.
-
-**Reliability Logic**: 
-`Gemini 2.0 Flash (Primary) ➡️ Groq Llama 3.1 70B (Failover)`
+## 🚀 Vision
+The **AMD Agentic Hardware Co-Design Platform** is a cutting-edge, industrial AI ecosystem designed to accelerate the development of next-generation hardware on **AMD Xilinx FPGAs and Adaptive SoCs**. By leveraging a multi-agent AI pipeline, we transform complex natural language requirements into synthesizable, verified RTL in seconds.
 
 ---
 
-## 🛠️ Industrial Toolchain Integration
+## 📸 Interface Preview
 
-We don't just generate text; we verify hardware.
--   **Verification**: Real-time `iverilog` simulation with full log capture.
--   **Synthesis**: Gate-level netlist generation using **Yosys**.
--   **Visualization**: Auto-generated High-Contrast RTL Schematics via **Netlistsvg**.
+<div align="center">
+  <h3>Professional RTL Design & Verification</h3>
+  <img src="./assets/amd_platform_home.png" width="90%" alt="AMD Agentic Platform Home" />
+  <p><em>Multi-agent pipeline showcasing Architecture, Verilog, and Simulation results.</em></p>
+  
+  <br/>
+  
+  <div style="display: flex; justify-content: space-around; gap: 10px;">
+    <div style="width: 48%;">
+      <h4>🎨 High-Contrast RTL Schematic</h4>
+      <img src="./assets/amd_rtl_schematic.png" width="100%" alt="RTL Schematic View" />
+    </div>
+    <div style="width: 48%;">
+      <h4>🤖 AI Design Assistant</h4>
+      <img src="./assets/amd_ai_assistant.png" width="100%" alt="AI Assistant Chat" />
+    </div>
+  </div>
+</div>
 
 ---
 
-## 🚀 Rapid Deployment
+## 💎 Elite Features
 
-### **Cloud Environment (Recommended)**
-The platform is pre-configured for **Render** (Backend) and **Firebase** (Frontend).
-1.  Connect your GitHub repo to Render.
-2.  Add `GEMINI_API_KEY` and `GROQ_API_KEY` to Environment Variables.
-3.  Ensure Firebase Auth and Firestore are enabled in your project Console.
+### **🧠 3-Tier Agentic Architecture**
+- **System Architect Agent**: High-level block diagram and architecture specs.
+- **RTL Engineer Agent**: Verilog HDL generation & automated testbench creation.
+- **Xilinx Integrator Agent**: Automated Tcl build scripting and resource optimization.
 
-### **Local Engineering Setup**
+### **🔧 Professional Engineering Toolchain**
+- **verification**: Integrated `iverilog` simulation with real-time log analysis.
+- **Synthesis**: Gate-level netlist generation using **Yosys**.
+- **Visualization**: High-Contrast, professional RTL Schematics via **Netlistsvg**.
+
+### **☁️ Cloud-Native Persistence**
+- **Google Sign-In**: Secure access for industrial hardware projects.
+- **Sync-History**: Full chat and project persistence with **Firebase Firestore**.
+
+### **📱 Ultra-Responsive Design**
+- **Modern UI**: A premium glassmorphic interface built with Vanilla JS and CSS3.
+- **Mobile-Ready**: Design and preview hardware code directly from your smartphone.
+
+---
+
+## 🛠️ The Tech Stack
+
+-   **Backend**: Python / Flask (containerized with Docker)
+-   **AI Intelligence**: 
+    -   **Primary**: Google Gemini 2.0 Flash
+    -   **Failover**: Groq Llama 3.1 70B (Ultra-fast inference)
+-   **Infrastructure**: Render / Firebase / GitHub actions
+
+---
+
+## 🎯 Target Platform: AMD Xilinx Ecosystem
+This platform is optimized for the **AMD Artix-7, Kintex-7, and Zynq** families. It generates industrial-standard RTL and Tcl build scripts ready for **Xilinx Vivado ML Edition**.
+
+---
+
+## 🚀 Quick Launch
+
+### **Cloud (Live)**
+Visit our live production instance at: **[amd-hardware-agent.onrender.com](https://amd-hardware-agent.onrender.com/)**
+
+### **Local Setup**
 ```bash
-# 1. Clone & Install
+# 1. Clone
 git clone https://github.com/Bhavin-umatiya/AMD_hack.git
+
+# 2. Install
 pip install -r requirements.txt
 
-# 2. Configure
-# Create .env with GEMINI_API_KEY and GROQ_API_KEY
+# 3. Secure
+# Create .env and add: GEMINI_API_KEY & GROQ_API_KEY
 
-# 3. Launch
+# 4. Start
 python app.py
 ```
 
 ---
 
-## 🏆 Hackathon Details
--   **Target Board**: Digilent Basys 3
--   **FPGA**: Xilinx Artix-7 (xc7a35tcpg236-1)
--   **Project Lead**: Bhavin Umatiya
--   **System Engineers**: Bhavin / Nishant
+## 👨‍💻 Project Team
+- **Bhavin Umatiya** (Lead AI/Full-Stack Engineer)
+- **Nishant** (Hardware Systems Engineer)
 
 ---
-*Built with ❤️ for the AMD Sling Shot Hackathon 2026. Transforming the future of Agentic Hardware Design.*
+<div align="center">
+  <p>Built for the <strong>AMD Sling Shot Hackathon 2026</strong>. Innovating the future of Agentic Silicon Design.</p>
+</div>
