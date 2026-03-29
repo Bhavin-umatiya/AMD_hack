@@ -1,129 +1,74 @@
-# AMD Agentic Hardware Co-Design Platform
+# 🚀 AMD Agentic Hardware Co-Design Platform
+**AMD Sling Shot Hackathon 2026 - Winner Category Submission**
 
-An AI-powered multi-agent system for automated hardware design generation using AMD/Xilinx FPGA workflows.
+[![Render](https://img.shields.io/badge/Render-Live_Site-ED1C24?style=for-the-badge&logo=render&logoColor=white)](https://amd-hardware-agent.onrender.com/)
+[![Firebase](https://img.shields.io/badge/Firebase-Auth_%26_Sync-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://console.firebase.google.com/)
+[![FPGA](https://img.shields.io/badge/Target-Basys_3-4ade80?style=for-the-badge&logo=fpga&logoColor=black)]()
 
-## 🎯 Overview
+An industrial-grade, AI-powered multi-agent system designed to automate the hardware co-design process for AMD/Xilinx FPGAs. From natural language to synthesizable RTL and Vivado build scripts in seconds.
 
-This platform uses a sequential three-agent pipeline with **intelligent AI model fallback**:
+---
 
-1. **System Architect** - Designs high-level hardware architecture
-2. **RTL Engineer** - Generates synthesizable Verilog code and testbenches
-3. **Vivado Integrator** - Creates Vivado TCL scripts and resource estimations
+## 💎 Premium Features
 
-### 🤖 Multi-Model AI System
+-   **🧠 Sequential Agentic Pipeline**: Three autonomous AI agents (Architect, RTL Engineer, Vivado Integrator) collaborating with intelligent failover (Gemini 2.0 ↔ Groq Llama 3).
+-   **🔌 Professional RTL Toolchain**: Built-in `iverilog` simulation and `yosys` gate-level synthesis for industrial RTL visualization.
+-   **📱 Mobile-Responsive Ultra-UI**: A stunning glassmorphic interface optimized for both high-end workstations and mobile previews.
+-   **☁️ Cloud Silicon Memory**: Real-time project syncing and AI Chat persistence powered by Firebase Firestore and Google Auth.
+-   **📦 Vivado-Ready Export**: One-click ZIP export containing structured RTL, Testbenches, and Vivado Tcl build scripts.
 
-Each agent independently tries AI models in this order:
-- **Primary**: Google Gemini 2.0 Flash (fast, powerful)
-- **Fallback**: Groq Llama 3.1 70B (FREE unlimited, ultra-fast)
+---
 
-**Per-Agent Fallback Flow**:
-```
-User generates design
-    ↓
-Agent 1: Try Gemini
-    ├─ Success? → Use Gemini ✅
-    └─ Failed? → Try Groq ✅
-    
-Agent 2: Try Gemini
-    ├─ Success? → Use Gemini ✅
-    └─ Failed? → Try Groq ✅
-    
-Agent 3: Try Gemini
-    ├─ Success? → Use Gemini ✅
-    └─ Failed? → Try Groq ✅
-```
+## 🕵️‍♂️ The Agentic Design Flow
 
-This ensures **maximum reliability** - if Gemini quota is exhausted or fails, Groq takes over seamlessly for each individual agent.
+This platform uses a high-reliability fallback system to ensure your hardware is generated even during high-traffic periods:
 
-## 🚀 Local Setup
+1.  **System Architect**: Translates requirements into a structured hardware block diagram.
+2.  **RTL Engineer**: Generates high-performance Verilog code and comprehensive testbenches.
+3.  **Vivado Integrator**: Crafts the Tcl build pipeline and calculates resource estimations for Artix-7.
 
-1. **Install Dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
+**Reliability Logic**: 
+`Gemini 2.0 Flash (Primary) ➡️ Groq Llama 3.1 70B (Failover)`
 
-2. **Configure API Keys**
-   - Create a `.env` file in the project root
-   - Add your API keys:
-     ```
-     # Primary (Gemini) - Get from: https://aistudio.google.com/app/apikey
-     GEMINI_API_KEY=your_gemini_api_key_here
-     
-     # Fallback (Groq) - Get from: https://console.groq.com/keys (FREE)
-     GROQ_API_KEY=your_groq_api_key_here
-     ```
-   - **Note**: At least one API key required. Both recommended for reliability.
+---
 
-3. **Run the Server**
-   ```bash
-   python app.py
-   ```
-   Or use the startup scripts:
-   - Windows: `start.bat`
-   - Linux/Mac: `./start.sh`
+## 🛠️ Industrial Toolchain Integration
 
-4. **Open the Interface**
-   - Navigate to `http://localhost:5000` in your browser
+We don't just generate text; we verify hardware.
+-   **Verification**: Real-time `iverilog` simulation with full log capture.
+-   **Synthesis**: Gate-level netlist generation using **Yosys**.
+-   **Visualization**: Auto-generated High-Contrast RTL Schematics via **Netlistsvg**.
 
-## 🌐 Deploy to Render (Free)
+---
 
-1. **Push to GitHub**
-   ```bash
-   git add .
-   git commit -m "Ready for deployment"
-   git push
-   ```
+## 🚀 Rapid Deployment
 
-2. **Create Render Account**
-   - Go to https://render.com
-   - Sign up with GitHub
+### **Cloud Environment (Recommended)**
+The platform is pre-configured for **Render** (Backend) and **Firebase** (Frontend).
+1.  Connect your GitHub repo to Render.
+2.  Add `GEMINI_API_KEY` and `GROQ_API_KEY` to Environment Variables.
+3.  Ensure Firebase Auth and Firestore are enabled in your project Console.
 
-3. **Create New Web Service**
-   - Click "New +" → "Web Service"
-   - Connect your GitHub repository
-   - Render will auto-detect the `render.yaml` configuration
+### **Local Engineering Setup**
+```bash
+# 1. Clone & Install
+git clone https://github.com/Bhavin-umatiya/AMD_hack.git
+pip install -r requirements.txt
 
-4. **Add Environment Variables**
-   - In Render dashboard, go to "Environment"
-   - Add variables:
-     - **Key**: `GEMINI_API_KEY` | **Value**: Your Gemini API key
-     - **Key**: `GROQ_API_KEY` | **Value**: Your Groq API key (optional)
-   - Click "Save Changes"
+# 2. Configure
+# Create .env with GEMINI_API_KEY and GROQ_API_KEY
 
-5. **Deploy**
-   - Render will automatically deploy your app
-   - Your app will be live at: `https://your-app-name.onrender.com`
-
-## 📡 API Endpoint
-
-**POST** `/generate-agentic-project`
-
-Request body:
-```json
-{
-  "userPrompt": "Design a 32-bit ALU with basic arithmetic operations"
-}
+# 3. Launch
+python app.py
 ```
 
-Response includes:
-- Architecture design
-- Verilog code & testbench
-- Vivado TCL script
-- **Models used** (shows which AI was used for each agent)
+---
 
-## 🏆 AMD Sling Shot Hackathon
+## 🏆 Hackathon Details
+-   **Target Board**: Digilent Basys 3
+-   **FPGA**: Xilinx Artix-7 (xc7a35tcpg236-1)
+-   **Project Lead**: Bhavin Umatiya
+-   **System Engineers**: Bhavin / Nishant
 
-Built for the AMD Sling Shot Hackathon 2026 - Demonstrating agentic AI workflows for hardware design automation.
-
-Target Platform: Basys 3 (Artix-7 FPGA - xc7a35tcpg236-1)
-
-## 🔧 Tech Stack
-
-- **Backend**: Flask (Python)
-- **AI Models**: 
-  - Google Gemini 2.0 Flash (primary)
-  - Groq Llama 3.1 70B (fallback, FREE unlimited)
-- **Frontend**: Vanilla JavaScript, HTML5, CSS3
-- **Database**: Firebase Firestore
-- **Auth**: Firebase Authentication (Google Sign-In)
-- **Deployment**: Render (Free tier)
+---
+*Built with ❤️ for the AMD Sling Shot Hackathon 2026. Transforming the future of Agentic Hardware Design.*
