@@ -98,7 +98,7 @@ python app.py
 
 ## 👨‍💻 Project Team
 - **Bhavin Umatiya** (Lead AI/Full-Stack Engineer)
-- **Nishant** (Hardware Systems Engineer)
+
 
 ---
 <div align="center">
