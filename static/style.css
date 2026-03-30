@@ -100,7 +100,7 @@ body {
 .input-field:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
+    box-shadow: 0 0 0 3px rgba(237, 28, 36, 0.2);
 }
 
 .textarea-field {
@@ -113,7 +113,7 @@ body {
 .generate-btn {
     width: 100%;
     padding: 16px;
-    background: linear-gradient(135deg, var(--primary-color) 0%, #0284c7 100%);
+    background: linear-gradient(135deg, var(--primary-color) 0%, #800000 100%);
     color: white;
     border: none;
     border-radius: 8px;
@@ -126,7 +126,7 @@ body {
 
 .generate-btn:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4);
+    box-shadow: 0 6px 20px rgba(237, 28, 36, 0.4);
 }
 
 .generate-btn:disabled {
@@ -438,7 +438,7 @@ body {
 }
 
 .sidebar-header {
-    background: linear-gradient(135deg, var(--primary-color) 0%, #0284c7 100%);
+    background: linear-gradient(135deg, var(--primary-color) 0%, #800000 100%);
     padding: 20px;
     display: flex;
     justify-content: space-between;
@@ -580,7 +580,7 @@ body {
     position: fixed;
     top: 20px;
     right: 20px;
-    background: linear-gradient(135deg, var(--primary-color) 0%, #0284c7 100%);
+    background: linear-gradient(135deg, var(--primary-color) 0%, #800000 100%);
     color: white;
     border: none;
     padding: 12px 20px;
@@ -588,14 +588,14 @@ body {
     cursor: pointer;
     font-weight: 700;
     font-size: 14px;
-    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+    box-shadow: 0 4px 12px rgba(237, 28, 36, 0.3);
     z-index: 1001;
     transition: all 0.3s;
 }
 
 .history-toggle:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(14, 165, 233, 0.4);
+    box-shadow: 0 6px 16px rgba(237, 28, 36, 0.4);
 }
 
 /* User Profile Section */
@@ -618,7 +618,7 @@ body {
     cursor: pointer;
     font-weight: 700;
     font-size: 15px;
-    box-shadow: 0 4px 15px rgba(14, 165, 233, 0.4);
+    box-shadow: 0 4px 15px rgba(237, 28, 36, 0.4);
     transition: all 0.3s ease;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -626,7 +626,7 @@ body {
 
 .sign-in-btn:hover {
     transform: translateY(-3px);
-    box-shadow: 0 6px 25px rgba(14, 165, 233, 0.6);
+    box-shadow: 0 6px 25px rgba(237, 28, 36, 0.6);
     border-color: rgba(255, 255, 255, 0.4);
 }
 
@@ -642,18 +642,18 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
-    background: linear-gradient(135deg, rgba(14, 165, 233, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
+    background: linear-gradient(135deg, rgba(237, 28, 36, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
     backdrop-filter: blur(15px);
-    border: 2px solid rgba(14, 165, 233, 0.4);
+    border: 2px solid rgba(237, 28, 36, 0.4);
     border-radius: 16px;
     padding: 12px 18px;
-    box-shadow: 0 6px 20px rgba(14, 165, 233, 0.3);
+    box-shadow: 0 6px 20px rgba(237, 28, 36, 0.3);
     transition: all 0.3s ease;
 }
 
 .user-signed-in:hover {
-    border-color: rgba(14, 165, 233, 0.6);
-    box-shadow: 0 8px 30px rgba(14, 165, 233, 0.4);
+    border-color: rgba(237, 28, 36, 0.6);
+    box-shadow: 0 8px 30px rgba(237, 28, 36, 0.4);
 }
 
 .user-avatar {
@@ -661,7 +661,7 @@ body {
     height: 45px;
     border-radius: 50%;
     border: 3px solid var(--primary-color);
-    box-shadow: 0 2px 8px rgba(14, 165, 233, 0.5);
+    box-shadow: 0 2px 8px rgba(237, 28, 36, 0.5);
 }
 
 .user-info {
@@ -700,7 +700,7 @@ body {
 .sign-out-btn:hover {
     background: linear-gradient(135deg, #075985 0%, #0c4a6e 100%);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.5);
+    box-shadow: 0 4px 12px rgba(237, 28, 36, 0.5);
     border-color: rgba(255, 255, 255, 0.4);
 }
 
@@ -779,7 +779,7 @@ body {
     background: linear-gradient(90deg, var(--primary-color) 0%, var(--accent-color) 100%);
     transition: width 0.5s ease;
     border-radius: 15px;
-    box-shadow: 0 0 20px rgba(14, 165, 233, 0.6);
+    box-shadow: 0 0 20px rgba(237, 28, 36, 0.6);
     animation: progress-glow 2s infinite;
 }
 
@@ -814,7 +814,7 @@ body {
     border-radius: 50%;
     font-size: 28px;
     cursor: pointer;
-    box-shadow: 0 8px 25px rgba(14, 165, 233, 0.6);
+    box-shadow: 0 8px 25px rgba(237, 28, 36, 0.6);
     transition: all 0.3s ease;
     z-index: 999;
     display: flex;
@@ -824,7 +824,7 @@ body {
 
 .chat-toggle:hover {
     transform: translateY(-5px) scale(1.1);
-    box-shadow: 0 12px 35px rgba(14, 165, 233, 0.8);
+    box-shadow: 0 12px 35px rgba(237, 28, 36, 0.8);
 }
 
 .chat-panel {
@@ -939,7 +939,7 @@ body {
 }
 
 .chat-message.user .message-content {
-    background: linear-gradient(135deg, rgba(14, 165, 233, 0.2) 0%, rgba(6, 182, 212, 0.2) 100%);
+    background: linear-gradient(135deg, rgba(237, 28, 36, 0.2) 0%, rgba(6, 182, 212, 0.2) 100%);
     border: 1px solid var(--primary-color);
 }
 
@@ -1005,7 +1005,7 @@ body {
 
 .chat-send-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4);
+    box-shadow: 0 6px 20px rgba(237, 28, 36, 0.4);
 }
 
 .chat-send-btn:disabled {
@@ -1045,7 +1045,7 @@ body {
 .schematic-container svg {
     max-width: 100%;
     height: auto;
-    filter: drop-shadow(0 0 10px rgba(14, 165, 233, 0.2));
+    filter: drop-shadow(0 0 10px rgba(237, 28, 36, 0.2));
 }
 
 .schematic-placeholder, .schematic-loading, .schematic-error {
@@ -1056,7 +1056,7 @@ body {
 .schematic-loading .mini-spinner {
     width: 40px;
     height: 40px;
-    border: 4px solid rgba(14, 165, 233, 0.1);
+    border: 4px solid rgba(237, 28, 36, 0.1);
     border-top: 4px solid var(--primary-color);
     border-radius: 50%;
     margin: 0 auto 15px;

@@ -19,6 +19,7 @@ const estimatedTime = document.getElementById('estimatedTime');
 
 let startTime = null;
 let currentUser = null; 
+let currentProjectData = null; // Global hardware project state
 
 // Dynamic Firestore reference to avoid initialization races
 function getDb() {
@@ -333,9 +334,9 @@ function displayResults(data) {
     if (data.modelsUsed && data.modelsUsed.length > 0) {
         const modelInfo = document.createElement('div');
         modelInfo.className = 'model-info';
-        modelInfo.style.cssText = 'background: linear-gradient(135deg, rgba(14, 165, 233, 0.1) 0%, rgba(2, 132, 199, 0.1) 100%); padding: 12px 20px; border-radius: 8px; margin: 15px 0; border-left: 3px solid #0ea5e9;';
+        modelInfo.style.cssText = 'background: linear-gradient(135deg, rgba(237, 28, 36, 0.1) 0%, rgba(128, 0, 0, 0.1) 100%); padding: 12px 20px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #ED1C24;';
         modelInfo.innerHTML = `
-            <div style="font-weight: 600; color: #0ea5e9; margin-bottom: 8px; font-size: 14px;">
+            <div style="font-weight: 700; color: #ED1C24; margin-bottom: 8px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">
                 🤖 AI Models Used:
             </div>
             <div style="font-family: 'Courier New', monospace; font-size: 13px; color: #94a3b8;">
@@ -541,11 +542,11 @@ function showSavePrompt() {
         position: fixed;
         bottom: 20px;
         right: 20px;
-        background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+        background: linear-gradient(135deg, #ED1C24 0%, #800000 100%);
         color: white;
         padding: 20px 25px;
         border-radius: 12px;
-        box-shadow: 0 8px 30px rgba(14, 165, 233, 0.5);
+        box-shadow: 0 8px 30px rgba(237, 28, 36, 0.4);
         z-index: 10000;
         max-width: 350px;
         animation: slideInUp 0.5s ease;
@@ -559,7 +560,7 @@ function showSavePrompt() {
                 <div style="font-size: 14px; opacity: 0.95; margin-bottom: 15px;">Sign in to save this design and access it later from any device!</div>
                 <div style="display: flex; gap: 10px;">
                     <button onclick="document.querySelector('.sign-in-btn').click(); this.parentElement.parentElement.parentElement.parentElement.remove();" 
-                            style="flex: 1; padding: 10px; background: white; color: #0284c7; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;">
+                            style="flex: 1; padding: 10px; background: white; color: #ED1C24; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;">
                         Sign In to Save
                     </button>
                     <button onclick="this.parentElement.parentElement.parentElement.parentElement.remove();" 
