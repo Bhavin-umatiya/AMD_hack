@@ -5,23 +5,23 @@
 }
 
 :root {
-    --primary-color: #0ea5e9;
-    --secondary-color: #0284c7;
-    --accent-color: #06b6d4;
-    --dark-blue: #0c4a6e;
-    --amd-dark: #0a0e27;
-    --amd-gray: #1e293b;
-    --amd-light-gray: #f1f5f9;
+    --primary-color: #ED1C24;
+    --secondary-color: #c41e3a;
+    --accent-color: #ff4d4d;
+    --dark-red: #5c0000;
+    --amd-dark: #0a0b10;
+    --amd-gray: #1a1a24;
+    --amd-light-gray: #f8fafc;
     --success-green: #10b981;
-    --error-red: #ef4444;
+    --error-red: #ff3333;
     --warning-yellow: #f59e0b;
-    --gradient-start: #0ea5e9;
-    --gradient-end: #0284c7;
+    --gradient-start: #ED1C24;
+    --gradient-end: #800000;
 }
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #0a0e27 0%, #0c4a6e 50%, #134e4a 100%);
+    background: linear-gradient(135deg, #0a0b10 0%, #200000 50%, #101010 100%);
     color: #ffffff;
     line-height: 1.6;
     min-height: 100vh;
@@ -39,7 +39,7 @@ body {
     padding: 30px;
     border-radius: 12px;
     margin-bottom: 30px;
-    box-shadow: 0 8px 24px rgba(14, 165, 233, 0.4);
+    box-shadow: 0 8px 32px rgba(237, 28, 36, 0.3);
 }
 
 .logo-section h1 {
