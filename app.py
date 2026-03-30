@@ -102,12 +102,12 @@ RTL_ENGINEER_PROMPT = """You are an Expert Verilog RTL Engineer for AMD/Xilinx F
 
 Design: {architecture_json}
 
-Generate MINIMAL synthesizable Verilog (under 40 lines) and brief testbench (under 15 lines).
+Generate synthesizable Verilog code (up to 150 lines if necessary) and a complete testbench (up to 80 lines).
 
-Return JSON with escaped newlines (\\n not actual newlines):
-{{"verilogCode": "module x();\\nendmodule", "testbenchCode": "module tb();\\nendmodule"}}
+Return ONLY a valid JSON object with the following keys:
+{{"verilogCode": "module alu_16bit(...);\\n\\nendmodule", "testbenchCode": "module tb_alu();\\n\\nendmodule"}}
 
-Keep it SHORT and SIMPLE. Escape ALL newlines as \\n"""
+Ensure all transitions are captured for waveform analysis. Escape ALL newlines as \\n."""
 
 # Agent 3: AMD Vivado Integrator Prompt Template
 VIVADO_INTEGRATOR_PROMPT = """You are an AMD Vivado Expert. 
@@ -359,7 +359,7 @@ def run_verilog_simulation(verilog_code, testbench_code):
         sim_out = os.path.join(temp_dir, 'sim.out')
         compile_res = subprocess.run(
             ['iverilog', '-o', sim_out, v_path, tb_path],
-            capture_output=True, text=True, timeout=10
+            capture_output=True, text=True, timeout=30
         )
         
         if compile_res.returncode != 0:
@@ -368,7 +368,7 @@ def run_verilog_simulation(verilog_code, testbench_code):
         # Execute
         run_res = subprocess.run(
             ['vvp', sim_out],
-            capture_output=True, text=True, timeout=10
+            capture_output=True, text=True, timeout=30
         )
         
         # Read VCD file if generated
