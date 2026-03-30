@@ -206,12 +206,22 @@
                     <div class="card-content">
                         <div id="waveformContainer" style="width: 100%; overflow-x: auto; background: #0a0b10; border-radius: 8px; padding: 20px; border: 1px solid rgba(237, 28, 36, 0.2);">
                             <!-- The waveform SVG will be injected here -->
-                            <div id="waveformSvgContainer"></div>
+                            <div id="waveformSvgContainer" style="min-height: 100px;"></div>
                         </div>
                         <div style="margin-top: 10px; font-size: 12px; color: #94a3b8; display: flex; justify-content: space-between;">
                             <span>Time (ns) ➔</span>
                             <span>Scroll horizontally to view full trace</span>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Block Diagram Card (ARCHITECTURE) -->
+                <div class="result-card">
+                    <div class="card-header">
+                        <h3>🎨 High-Level Block Diagram</h3>
+                    </div>
+                    <div class="card-content">
+                        <canvas id="blockDiagram" width="1200" height="400" style="width: 100%; height: auto; background: rgba(0,0,0,0.2); border-radius: 8px;"></canvas>
                     </div>
                 </div>
 
