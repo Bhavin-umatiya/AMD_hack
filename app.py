@@ -200,16 +200,34 @@ def parse_ai_response(response_text, agent_name="Agent"):
     
     response_text = response_text.strip()
     
-    # Try to extract JSON if there's extra text
-    # Look for content between first { and last }
-    if not response_text.startswith('{'):
-        match = re.search(r'\{.*\}', response_text, re.DOTALL)
-        if match:
-            response_text = match.group(0)
-    
-    # Parse JSON
+    # Parse JSON (Sanitize first for Groq/Llama quirks)
     try:
-        result = json.loads(response_text)
+        # Step 1: Pre-sanitize: Replace actual newlines within the JSON string with escaped \n 
+        # specifically if they appear inside string values.
+        # This is a common issue with GROQ/Llama models.
+        sanitized = response_text
+        
+        # Robust fix: Use regex to find the content between the first { and last }
+        # and then handle internal structure
+        if not sanitized.startswith('{'):
+            json_match = re.search(r'\{.*\}', sanitized, re.DOTALL)
+            if json_match:
+                sanitized = json_match.group(0)
+
+        # Basic cleanup: escape real newlines that break JSON.loads
+        sanitized = sanitized.replace('\n', '\\n').replace('\r', '')
+        # Fix double escaping that might result: \\n -> \n
+        sanitized = sanitized.replace('\\\\n', '\\n')
+        
+        # If it's still broken, try a more surgical escape
+        # BUT first try the standard loads on the original if it looks clean
+        try:
+            result = json.loads(response_text)
+        except:
+            # surgical escape: find multiline strings and escape them
+            # This is complex, so we'll use a simpler heuristic: 
+            # if it starts with { and fails, try the sanitized version
+            result = json.loads(sanitized)
         
         # Post-process: unescape newlines in string values if they were escaped
         if 'verilogCode' in result and isinstance(result['verilogCode'], str):
