@@ -1205,7 +1205,7 @@ async function handleDownloadZip() {
 // ========================================
 
 /**
- * Custom High-Performance VCD to SVG Waveform Engine 🌊
+ * Professional High-Performance VCD to SVG Waveform Engine 🌊
  * Built for AMD Agentic Hardware Co-Design Platform 🚀
  */
 
@@ -1220,61 +1220,88 @@ function renderWaveform(vcdText) {
             return;
         }
 
-        const signalHeight = 40;
-        const widthPerUnit = 25; // Zoom level
+        const signalHeight = 65; // High-density spacing
+        const widthPerUnit = 30; // Zoom level
         const totalTime = vcdData.maxTime;
-        const leftGutter = 150;
-        const svgWidth = Math.max(800, totalTime * widthPerUnit + leftGutter + 40);
-        const svgHeight = vcdData.signals.length * (signalHeight + 10) + 40;
+        const leftGutter = 160;
+        const rightMargin = 50;
+        const svgWidth = Math.max(800, totalTime * widthPerUnit + leftGutter + rightMargin);
+        const svgHeight = vcdData.signals.length * signalHeight + 60;
 
         let svg = `<svg width="${svgWidth}" height="${svgHeight}" xmlns="http://www.w3.org/2000/svg" style="background: transparent;">`;
         
         // Add Grid Lines & Time Markers
-        for (let t = 0; t <= totalTime; t += 5) {
+        for (let t = 0; t <= totalTime; t += 10) { // Every 10ns for clarity
             const x = t * widthPerUnit + leftGutter;
-            svg += `<line x1="${x}" y1="0" x2="${x}" y2="${svgHeight - 25}" stroke="rgba(255,255,255,0.08)" stroke-width="1" stroke-dasharray="2,2" />`;
-            svg += `<text x="${x}" y="${svgHeight - 10}" fill="#475569" font-size="10" text-anchor="middle" font-family="monospace">${t}ns</text>`;
+            svg += `<line x1="${x}" y1="0" x2="${x}" y2="${svgHeight - 30}" stroke="rgba(255,255,255,0.06)" stroke-width="1" />`;
+            svg += `<text x="${x}" y="${svgHeight - 10}" fill="#94a3b8" font-size="11" text-anchor="middle" font-family="'Courier New', monospace">${t}ns</text>`;
         }
 
         vcdData.signals.forEach((sig, index) => {
-            const yOffset = index * (signalHeight + 10) + 15;
+            const yBase = index * signalHeight + 20;
             const signalName = sig.name;
+            const isBus = sig.width > 1;
             
             // Draw Signal Label (Persistent Gutter)
-            svg += `<text x="10" y="${yOffset + 25}" fill="#ED1C24" font-size="13" font-family="'Courier New', monospace" font-weight="700">${signalName}</text>`;
-            svg += `<line x1="0" y1="${yOffset + 45}" x2="${svgWidth}" y2="${yOffset + 45}" stroke="rgba(255,255,255,0.03)" stroke-width="1" />`;
+            svg += `<text x="10" y="${yBase + 35}" fill="#ED1C24" font-size="14" font-family="'Courier New', monospace" font-weight="700">${signalName}</text>`;
+            if (isBus) {
+                svg += `<text x="10" y="${yBase + 52}" fill="#475569" font-size="10" font-family="monospace">[${sig.width-1}:0]</text>`;
+            }
             
-            // Initial state
-            let lastVal = sig.changes.length > 0 ? sig.changes[0].value : '0';
-            let path = '';
+            // Row Divider Line
+            svg += `<line x1="0" y1="${yBase + signalHeight}" x2="${svgWidth}" y2="${yBase + signalHeight}" stroke="rgba(255,255,255,0.04)" stroke-width="1" />`;
             
-            const initialX = leftGutter;
-            const highY = yOffset + 5;
-            const lowY = yOffset + 35;
-            
-            // Start the path from time 0
-            path += `M ${initialX} ${lastVal === '1' ? highY : lowY}`;
+            const highY = yBase + 12;
+            const lowY = yBase + 38;
+            const midY = yBase + 25;
 
-            sig.changes.forEach((change, cIndex) => {
-                const x = change.time * widthPerUnit + leftGutter;
-                
-                // 1. Horizontal line to CHANGE point
-                path += ` H ${x}`;
-                
-                // 2. Vertical transition
-                if (change.value === '1') {
-                    path += ` V ${highY}`;
-                } else if (change.value === '0') {
-                    path += ` V ${lowY}`;
+            if (!isBus) {
+                // SINGLE BIT RENDERER (Square Wave)
+                let lastVal = sig.changes.length > 0 ? sig.changes[0].value : '0';
+                let path = `M ${leftGutter} ${lastVal === '1' ? highY : lowY}`;
+
+                sig.changes.forEach(change => {
+                    const x = change.time * widthPerUnit + leftGutter;
+                    path += ` H ${x}`; // Horizontal line to change time
+                    path += ` V ${change.value === '1' ? highY : lowY}`; // Vertical flip
+                });
+
+                // Final line to end of simulation
+                path += ` H ${totalTime * widthPerUnit + leftGutter}`;
+                svg += `<path d="${path}" fill="none" stroke="#ED1C24" stroke-width="2.5" stroke-linejoin="round" style="filter: drop-shadow(0 0 5px rgba(237, 28, 36, 0.4));" />`;
+            } else {
+                // MULTI-BIT BUS RENDERER (Hex Transition Envelopes)
+                let lastVal = sig.changes.length > 0 ? sig.changes[0].value : '0';
+                let lastX = leftGutter;
+
+                sig.changes.forEach((change, cIdx) => {
+                    const x = change.time * widthPerUnit + leftGutter;
+                    
+                    // Draw the segment for the PREVIOUS value
+                    const hexVal = formatToHex(lastVal, sig.width);
+                    
+                    // Envelope path (slanted edges for transitions)
+                    svg += `<path d="M ${lastX} ${midY} L ${lastX+4} ${highY} H ${x-4} L ${x} ${midY} L ${x-4} ${lowY} H ${lastX+4} Z" 
+                            fill="rgba(237, 28, 36, 0.1)" stroke="#ED1C24" stroke-width="1.5" />`;
+                    
+                    // Value text
+                    if (x - lastX > 50) {
+                        svg += `<text x="${(lastX + x)/2}" y="${midY + 5}" fill="#ffffff" font-size="11" text-anchor="middle" font-family="monospace">${hexVal}</text>`;
+                    }
+                    
+                    lastVal = change.value;
+                    lastX = x;
+                });
+
+                // Draw the final open segment to simulation end
+                const finalX = totalTime * widthPerUnit + leftGutter;
+                const hexVal = formatToHex(lastVal, sig.width);
+                svg += `<path d="M ${lastX} ${midY} L ${lastX+4} ${highY} H ${finalX} L ${finalX} ${lowY} H ${lastX+4} Z" 
+                        fill="rgba(237, 28, 36, 0.1)" stroke="#ED1C24" stroke-width="1.5" />`;
+                if (finalX - lastX > 50) {
+                    svg += `<text x="${(lastX + finalX)/2}" y="${midY + 5}" fill="#ffffff" font-size="11" text-anchor="middle" font-family="monospace">${hexVal}</text>`;
                 }
-                
-                lastVal = change.value;
-            });
-
-            // Final line to end of simulation
-            path += ` H ${totalTime * widthPerUnit + leftGutter}`;
-
-            svg += `<path d="${path}" fill="none" stroke="#ED1C24" stroke-width="2.5" stroke-linejoin="round" style="filter: drop-shadow(0 0 5px rgba(237, 28, 36, 0.4));" />`;
+            }
         });
 
         svg += '</svg>';
@@ -1287,61 +1314,97 @@ function renderWaveform(vcdText) {
 
 function parseVCD(vcdText) {
     const lines = vcdText.split('\n');
-    const signals = [];
-    const idMap = {};
+    const signalsMap = new Map(); 
+    const idToSignal = {};
     let maxTime = 0;
     let currentTime = 0;
 
-    // Use regex to be more robust
-    const varRegex = /\$var\s+(?:wire|reg)\s+\d+\s+([^\s]+)\s+([^\s]+)\s+\$end/;
+    // Robust Regex to handle variable definitions (including bit ranges like [7:0])
+    const varRegex = /\$var\s+(?:wire|reg)\s+(\d+)\s+([^\s]+)\s+([^\[\s\$]+)/;
 
     lines.forEach(line => {
         const trimmed = line.trim();
         
-        // 1. Parse Signal Definitions
+        // 1. Parse Variable Definitions
         if (trimmed.startsWith('$var')) {
             const match = trimmed.match(varRegex);
             if (match) {
-                const id = match[1];
-                const name = match[2];
-                const sig = { id, name, changes: [] };
-                signals.push(sig);
-                idMap[id] = sig;
+                const width = parseInt(match[1]);
+                const id = match[2];
+                let fullName = match[3];
+                
+                // Deduplication: Extract BASENAME (e.g., 'top.dut.clk' -> 'clk')
+                const nameParts = fullName.split('.');
+                const name = nameParts[nameParts.length - 1];
+                
+                if (!signalsMap.has(name)) {
+                    const sig = { id, name, width, changes: [] };
+                    signalsMap.set(name, sig);
+                    idToSignal[id] = sig;
+                } else {
+                    // Map multiple IDs to the same logical signal (deduplication)
+                    idToSignal[id] = signalsMap.get(name);
+                }
             }
         }
-        
-        // 2. Parse Time Markers (#10, #20, etc)
+        // 2. Parse Time Markers
         else if (trimmed.startsWith('#')) {
             currentTime = parseInt(trimmed.substring(1));
             maxTime = Math.max(maxTime, currentTime);
         } 
-        
-        // 3. Parse Value Changes (1!, 0!, b001!)
+        // 3. Parse Value Changes
         else if (trimmed.length >= 2) {
             let val, id;
             if (trimmed.startsWith('b')) {
-                // Bus values: b0010 !
+                // Bus format: b0101 ! (Binary value + ID)
                 const parts = trimmed.split(/\s+/);
-                val = parts[0].substring(1) === 'x' ? '0' : (parseInt(parts[0].substring(1), 2) > 0 ? '1' : '0'); 
+                val = parts[0].substring(1); 
                 id = parts[1];
-            } else {
-                // Single bit: 1!
+            } else if (trimmed.match(/^[01xXzZ][^\s]+$/)) {
+                // Single bit format: 1! (Value + ID)
                 val = trimmed[0];
                 id = trimmed.substring(1);
             }
             
-            if (idMap[id]) {
-                // Optimization: Only record if value actually changed
-                const changes = idMap[id].changes;
-                if (changes.length === 0 || changes[changes.length-1].value !== val) {
-                    changes.push({ time: currentTime, value: val });
+            const sig = idToSignal[id];
+            if (sig) {
+                const last = sig.changes[sig.changes.length - 1];
+                // Record change if time is new or value is different
+                if (!last || last.value !== val) {
+                    if (last && last.time === currentTime) {
+                        last.value = val; // Merge simultaneous changes
+                    } else {
+                        sig.changes.push({ time: currentTime, value: val });
+                    }
                 }
             }
         }
     });
 
-    // Ensure at least 100ns of display if total time is small
     if (maxTime < 100) maxTime = 100;
+    
+    // Professional Sort: clk -> reset -> enable -> others
+    const sortedSignals = Array.from(signalsMap.values()).sort((a, b) => {
+        const nA = a.name.toLowerCase();
+        const nB = b.name.toLowerCase();
+        const rank = (n) => n.includes('clk') ? 0 : n.includes('reset') ? 1 : n.includes('en') ? 2 : 3;
+        const rankDiff = rank(nA) - rank(nB);
+        return rankDiff !== 0 ? rankDiff : nA.localeCompare(nB);
+    });
 
-    return { signals, maxTime };
+    return { signals: sortedSignals, maxTime };
+}
+
+function formatToHex(binStr, width) {
+    if (binStr.includes('x') || binStr.includes('X')) return 'X';
+    if (binStr.includes('z') || binStr.includes('Z')) return 'Z';
+    try {
+        const val = parseInt(binStr, 2);
+        if (isNaN(val)) return binStr;
+        const hex = val.toString(16).toUpperCase();
+        const hexLen = Math.ceil(width / 4);
+        return '0x' + hex.padStart(hexLen, '0');
+    } catch (e) {
+        return binStr;
+    }
 }
