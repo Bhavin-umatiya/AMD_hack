@@ -112,7 +112,7 @@ Keep it SHORT and SIMPLE. Escape ALL newlines as \\n"""
 # Agent 3: AMD Vivado Integrator Prompt Template
 VIVADO_INTEGRATOR_PROMPT = """You are an AMD Vivado Expert. 
 Project: '{project_title}' 
-Target FPGA: AMD Artix-7 (Basys 3)
+Target FPGA: AMD Xiling Board
 RTL Code for Analysis:
 {rtl_code}
 
@@ -295,11 +295,11 @@ def call_agent_with_fallback(prompt, agent_name="Agent"):
 def run_verilog_simulation(verilog_code, testbench_code):
     """
     Run Iverilog simulation on the provided code.
-    Returns (success, output_logs)
+    Returns (success, output_logs, vcd_content)
     """
     # Check if iverilog is installed
     if shutil.which('iverilog') is None:
-        return True, "⚠️ Iverilog not found. Integrated simulation is only available in Docker/Production. (Mock Success)"
+        return True, "⚠️ Iverilog not found. Integrated simulation is only available in Docker/Production. (Mock Success)", ""
 
     temp_dir = tempfile.mkdtemp()
     try:
@@ -309,6 +309,19 @@ def run_verilog_simulation(verilog_code, testbench_code):
         
         with open(v_path, 'w') as f:
             f.write(verilog_code)
+            
+        # Inject VCD directives into testbench if missing
+        if '$dumpfile' not in testbench_code:
+            vcd_path = os.path.join(temp_dir, 'design.vcd')
+            # Insert before the last 'endmodule'
+            injection = f'\ninitial begin\n  $dumpfile("{vcd_path}");\n  $dumpvars(0);\nend\n'
+            # Look for last endmodule
+            if 'endmodule' in testbench_code:
+                last_endmodule = testbench_code.rfind('endmodule')
+                testbench_code = testbench_code[:last_endmodule] + injection + testbench_code[last_endmodule:]
+            else:
+                testbench_code += injection
+                
         with open(tb_path, 'w') as f:
             f.write(testbench_code)
             
@@ -324,18 +337,19 @@ def run_verilog_simulation(verilog_code, testbench_code):
         if compile_res.returncode != 0:
             return False, f"Compilation Error:\n{compile_res.stderr}"
             
-        # Execute
-        run_res = subprocess.run(
-            ['vvp', sim_out],
-            capture_output=True, text=True, timeout=10
-        )
+        # Read VCD file if generated
+        vcd_content = ""
+        vcd_file_path = os.path.join(temp_dir, 'design.vcd')
+        if os.path.exists(vcd_file_path):
+            with open(vcd_file_path, 'r') as f:
+                vcd_content = f.read()
         
-        return (run_res.returncode == 0), run_res.stdout + run_res.stderr
+        return (run_res.returncode == 0), run_res.stdout + run_res.stderr, vcd_content
         
     except subprocess.TimeoutExpired:
-        return False, "Simulation timed out (likely infinite loop in RTL)"
+        return False, "Simulation timed out (likely infinite loop in RTL)", ""
     except Exception as e:
-        return False, f"Simulation system error: {str(e)}"
+        return False, f"Simulation system error: {str(e)}", ""
     finally:
         shutil.rmtree(temp_dir, ignore_errors=True)
 
@@ -579,7 +593,7 @@ Design Context: {json.dumps(architecture_result, indent=2)}"""
             rtl_result, model2 = call_agent_with_fallback(rtl_prompt, "RTL Engineer")
             
             # Run Simulation (Verify)
-            sim_success, sim_logs = run_verilog_simulation(
+            sim_success, sim_logs, vcd_data = run_verilog_simulation(
                 rtl_result.get('verilogCode', ''),
                 rtl_result.get('testbenchCode', '')
             )
@@ -627,7 +641,8 @@ Design Context: {json.dumps(architecture_result, indent=2)}"""
                 "verilogCode": rtl_result.get('verilogCode', ''),
                 "testbenchCode": rtl_result.get('testbenchCode', ''),
                 "simPassed": sim_success,
-                "simulationLogs": sim_logs
+                "simulationLogs": sim_logs,
+                "vcdData": vcd_data
             },
             "vivado": vivado_result
         }), 200

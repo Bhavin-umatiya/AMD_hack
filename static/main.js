@@ -393,6 +393,14 @@ function displayResults(data) {
 
         // Generate and display professional schematic
         updateRTLSchematic(data.rtl.verilogCode);
+
+        // NEW: Digital Waveform Viewer
+        if (data.rtl.vcdData) {
+            renderWaveform(data.rtl.vcdData);
+            document.getElementById('waveformCard').style.display = 'block';
+        } else {
+            document.getElementById('waveformCard').style.display = 'none';
+        }
     }
 
     // Scroll to results
@@ -478,13 +486,15 @@ function resetUI() {
     resourceEstimationElement.innerHTML = '';
     
     if (schematicContainer) {
-        schematicContainer.innerHTML = `
-            <div class="schematic-placeholder">
-                <p>Generating hardware schematic...</p>
-            </div>
-        `;
+        schematicContainer.innerHTML = '';
     }
-    
+
+    // Clear Waveform
+    const waveformCard = document.getElementById('waveformCard');
+    if (waveformCard) waveformCard.style.display = 'none';
+    const waveformSvgContainer = document.getElementById('waveformSvgContainer');
+    if (waveformSvgContainer) waveformSvgContainer.innerHTML = '';
+
     if (simLogsElement) simLogsElement.textContent = '';
 }
 
@@ -680,13 +690,13 @@ async function sendChatMessage() {
     sendBtn.textContent = 'Thinking...';
     
     try {
-        // Send to backend
+        // Send to backend with safety checks for project context
         const response = await fetch(`${API_BASE_URL}/chat-assistant`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 message: message,
-                projectData: currentProjectData,
+                projectData: currentProjectData || null,
                 history: chatHistory
             })
         });
@@ -803,6 +813,7 @@ async function loadChatHistoryFromCloud() {
 
 async function clearChatHistory() {
     if (!confirm('Are you sure you want to clear your chat history?')) return;
+    const db = getDb();
     if (!currentUser || !db) {
         // Local only clear
         document.getElementById('chatMessages').innerHTML = '';
@@ -846,20 +857,16 @@ function toggleSidebar() {
 }
 
 function saveProjectToFirebase(projectData) {
-    if (typeof firebase === 'undefined' || !db) {
-        console.log('Firebase not available, skipping save');
-        return;
-    }
-    
-    if (!currentUser) {
-        console.log('User not signed in, skipping auto-save');
+    const db = getDb();
+    if (!currentUser || !db) {
+        console.log('Project saving skipped: Not logged in or Firebase not available');
         return;
     }
     
     const projectDoc = {
         timestamp: firebase.firestore.FieldValue.serverTimestamp(),
         prompt: document.getElementById('userPrompt').value,
-        title: projectData.architecture.projectTitle,
+        title: projectData?.architecture?.projectTitle || 'Untitled Project',
         data: projectData,
         createdAt: new Date().toISOString(),
         userId: currentUser.uid,
@@ -879,8 +886,9 @@ function saveProjectToFirebase(projectData) {
 }
 
 function loadProjectHistory() {
-    if (typeof firebase === 'undefined' || !db) {
-        console.log('Firebase not available');
+    const db = getDb();
+    if (!currentUser || !db) {
+        console.log('User not signed in or Firebase not available');
         return;
     }
     
@@ -935,8 +943,9 @@ function createHistoryItem(projectId, project) {
 }
 
 function loadProjectById(projectId) {
-    if (typeof firebase === 'undefined' || !db) {
-        alert('Firebase not available');
+    const db = getDb();
+    if (!currentUser || !db) {
+        alert('Please sign in or check your connection');
         return;
     }
     
@@ -970,8 +979,9 @@ function deleteProject(projectId) {
         return;
     }
     
-    if (typeof firebase === 'undefined' || !db) {
-        alert('Firebase not available');
+    const db = getDb();
+    if (!currentUser || !db) {
+        alert('Please sign in');
         return;
     }
     
@@ -996,8 +1006,9 @@ function clearHistory() {
         return;
     }
     
-    if (typeof firebase === 'undefined' || !db) {
-        alert('Firebase not available');
+    const db = getDb();
+    if (!currentUser || !db) {
+        alert('Please sign in');
         return;
     }
     
@@ -1189,4 +1200,148 @@ async function handleDownloadZip() {
         downloadZipBtn.disabled = false;
     }
 }
+// ========================================
+// DIGITAL WAVEFORM VIEWER (VCD Engine)
+// ========================================
 
+/**
+ * Custom High-Performance VCD to SVG Waveform Engine 🌊
+ * Built for AMD Agentic Hardware Co-Design Platform 🚀
+ */
+
+function renderWaveform(vcdText) {
+    const container = document.getElementById('waveformSvgContainer');
+    if (!container) return;
+    
+    try {
+        const vcdData = parseVCD(vcdText);
+        if (!vcdData || vcdData.signals.length === 0) {
+            container.innerHTML = '<p style="color: #94a3b8; padding: 20px;">No signal data available in VCD.</p>';
+            return;
+        }
+
+        const signalHeight = 40;
+        const widthPerUnit = 25; // Zoom level
+        const totalTime = vcdData.maxTime;
+        const leftGutter = 150;
+        const svgWidth = Math.max(800, totalTime * widthPerUnit + leftGutter + 40);
+        const svgHeight = vcdData.signals.length * (signalHeight + 10) + 40;
+
+        let svg = `<svg width="${svgWidth}" height="${svgHeight}" xmlns="http://www.w3.org/2000/svg" style="background: transparent;">`;
+        
+        // Add Grid Lines & Time Markers
+        for (let t = 0; t <= totalTime; t += 5) {
+            const x = t * widthPerUnit + leftGutter;
+            svg += `<line x1="${x}" y1="0" x2="${x}" y2="${svgHeight - 25}" stroke="rgba(255,255,255,0.08)" stroke-width="1" stroke-dasharray="2,2" />`;
+            svg += `<text x="${x}" y="${svgHeight - 10}" fill="#475569" font-size="10" text-anchor="middle" font-family="monospace">${t}ns</text>`;
+        }
+
+        vcdData.signals.forEach((sig, index) => {
+            const yOffset = index * (signalHeight + 10) + 15;
+            const signalName = sig.name;
+            
+            // Draw Signal Label (Persistent Gutter)
+            svg += `<text x="10" y="${yOffset + 25}" fill="#ED1C24" font-size="13" font-family="'Courier New', monospace" font-weight="700">${signalName}</text>`;
+            svg += `<line x1="0" y1="${yOffset + 45}" x2="${svgWidth}" y2="${yOffset + 45}" stroke="rgba(255,255,255,0.03)" stroke-width="1" />`;
+            
+            // Initial state
+            let lastVal = sig.changes.length > 0 ? sig.changes[0].value : '0';
+            let path = '';
+            
+            const initialX = leftGutter;
+            const highY = yOffset + 5;
+            const lowY = yOffset + 35;
+            
+            // Start the path from time 0
+            path += `M ${initialX} ${lastVal === '1' ? highY : lowY}`;
+
+            sig.changes.forEach((change, cIndex) => {
+                const x = change.time * widthPerUnit + leftGutter;
+                
+                // 1. Horizontal line to CHANGE point
+                path += ` H ${x}`;
+                
+                // 2. Vertical transition
+                if (change.value === '1') {
+                    path += ` V ${highY}`;
+                } else if (change.value === '0') {
+                    path += ` V ${lowY}`;
+                }
+                
+                lastVal = change.value;
+            });
+
+            // Final line to end of simulation
+            path += ` H ${totalTime * widthPerUnit + leftGutter}`;
+
+            svg += `<path d="${path}" fill="none" stroke="#ED1C24" stroke-width="2.5" stroke-linejoin="round" style="filter: drop-shadow(0 0 5px rgba(237, 28, 36, 0.4));" />`;
+        });
+
+        svg += '</svg>';
+        container.innerHTML = svg;
+    } catch (e) {
+        console.error('Waveform Error:', e);
+        container.innerHTML = `<p style="color: #ef4444; padding: 20px;">Error rendering waveform: ${e.message}</p>`;
+    }
+}
+
+function parseVCD(vcdText) {
+    const lines = vcdText.split('\n');
+    const signals = [];
+    const idMap = {};
+    let maxTime = 0;
+    let currentTime = 0;
+
+    // Use regex to be more robust
+    const varRegex = /\$var\s+(?:wire|reg)\s+\d+\s+([^\s]+)\s+([^\s]+)\s+\$end/;
+
+    lines.forEach(line => {
+        const trimmed = line.trim();
+        
+        // 1. Parse Signal Definitions
+        if (trimmed.startsWith('$var')) {
+            const match = trimmed.match(varRegex);
+            if (match) {
+                const id = match[1];
+                const name = match[2];
+                const sig = { id, name, changes: [] };
+                signals.push(sig);
+                idMap[id] = sig;
+            }
+        }
+        
+        // 2. Parse Time Markers (#10, #20, etc)
+        else if (trimmed.startsWith('#')) {
+            currentTime = parseInt(trimmed.substring(1));
+            maxTime = Math.max(maxTime, currentTime);
+        } 
+        
+        // 3. Parse Value Changes (1!, 0!, b001!)
+        else if (trimmed.length >= 2) {
+            let val, id;
+            if (trimmed.startsWith('b')) {
+                // Bus values: b0010 !
+                const parts = trimmed.split(/\s+/);
+                val = parts[0].substring(1) === 'x' ? '0' : (parseInt(parts[0].substring(1), 2) > 0 ? '1' : '0'); 
+                id = parts[1];
+            } else {
+                // Single bit: 1!
+                val = trimmed[0];
+                id = trimmed.substring(1);
+            }
+            
+            if (idMap[id]) {
+                // Optimization: Only record if value actually changed
+                const changes = idMap[id].changes;
+                if (changes.length === 0 || changes[changes.length-1].value !== val) {
+                    changes.push({ time: currentTime, value: val });
+                }
+            }
+        }
+    });
+
+    // Ensure at least 100ns of display if total time is small
+    if (maxTime < 100) maxTime = 100;
+
+    return { signals, maxTime };
+}

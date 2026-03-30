@@ -197,13 +197,32 @@
                     </div>
                 </div>
 
-                <!-- Block Diagram Card (Legacy) -->
-                <div class="result-card">
+                <!-- Simulation Waveform Viewer -->
+                <div class="result-card" id="waveformCard" style="display: none;">
                     <div class="card-header">
-                        <h3>🎨 High-Level Block Diagram</h3>
+                        <h3>🌊 Simulation Waveform Viewer</h3>
+                        <div class="status-badge success" id="simStatusBadge">Simulation Passed ✅</div>
                     </div>
                     <div class="card-content">
-                        <canvas id="blockDiagram" width="1200" height="400"></canvas>
+                        <div id="waveformContainer" style="width: 100%; overflow-x: auto; background: #0a0b10; border-radius: 8px; padding: 20px; border: 1px solid rgba(237, 28, 36, 0.2);">
+                            <!-- The waveform SVG will be injected here -->
+                            <div id="waveformSvgContainer"></div>
+                        </div>
+                        <div style="margin-top: 10px; font-size: 12px; color: #94a3b8; display: flex; justify-content: space-between;">
+                            <span>Time (ns) ➔</span>
+                            <span>Scroll horizontally to view full trace</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simulation Logs Card -->
+                <div class="result-card">
+                    <div class="card-header">
+                        <h3>📝 Simulation Logs</h3>
+                        <button class="copy-btn" data-target="simLogs">📋 Copy</button>
+                    </div>
+                    <div class="card-content">
+                        <pre id="simLogs" class="code-block"></pre>
                     </div>
                 </div>
             </section>
