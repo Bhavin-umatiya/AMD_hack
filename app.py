@@ -219,14 +219,24 @@ def parse_ai_response(response_text, agent_name="Agent"):
         # Fix double escaping that might result: \\n -> \n
         sanitized = sanitized.replace('\\\\n', '\\n')
         
-        # If it's still broken, try a more surgical escape
-        # BUT first try the standard loads on the original if it looks clean
+        # Try a recursive cleanup if first attempt fails
         try:
             result = json.loads(response_text)
         except:
-            # surgical escape: find multiline strings and escape them
-            # This is complex, so we'll use a simpler heuristic: 
-            # if it starts with { and fails, try the sanitized version
+            # 1. Surgical extraction: find the JSON body between {}
+            json_match = re.search(r'(\{.*\})', response_text, re.DOTALL)
+            if json_match:
+                sanitized = json_match.group(1)
+            else:
+                sanitized = response_text
+
+            # 2. Convert actual newlines and tabs to escaped versions ONLY if they break JSON
+            # This is safer than a global replace which might break existing \n
+            sanitized = sanitized.replace('\n', '\\n').replace('\t', '\\t').replace('\r', '')
+            
+            # 3. Clean up any unintended double-escaping: \\n -> \n
+            sanitized = sanitized.replace('\\\\n', '\\n').replace('\\\\t', '\\t')
+            
             result = json.loads(sanitized)
         
         # Post-process: unescape newlines in string values if they were escaped
@@ -353,8 +363,14 @@ def run_verilog_simulation(verilog_code, testbench_code):
         )
         
         if compile_res.returncode != 0:
-            return False, f"Compilation Error:\n{compile_res.stderr}"
+            return False, f"Compilation Error:\n{compile_res.stderr}", ""
             
+        # Execute
+        run_res = subprocess.run(
+            ['vvp', sim_out],
+            capture_output=True, text=True, timeout=10
+        )
+        
         # Read VCD file if generated
         vcd_content = ""
         vcd_file_path = os.path.join(temp_dir, 'design.vcd')
